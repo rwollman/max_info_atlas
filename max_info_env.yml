@@ -1,0 +1,55 @@
+name: max_info_atlases
+channels:
+  - conda-forge
+dependencies:
+  # ============================================================================
+  # Core dependencies for max_info_atlases package
+  # ============================================================================
+  
+  # Python version
+  - python=3.10
+  
+  # Build dependencies (required for Cython compilation)
+  - cython>=3.0
+  - numpy>=2.0,<3.0
+  
+  # Core scientific computing
+  - pandas>=2.0
+  - scipy>=1.13
+  - scikit-learn>=1.5
+  - statsmodels>=0.14
+  - numba>=0.60
+  
+  # Specialized packages
+  - python-igraph>=0.11
+  - pyyaml>=5.4
+  - click>=8.0
+  - h5py>=3.0
+  - pynndescent>=0.5
+  
+  # Spatial transcriptomics & single-cell
+  - anndata>=0.11
+  - scanpy>=1.10
+  - scvi-tools>=1.2.2
+  - umap-learn>=0.5
+  
+  # Machine learning & neural networks
+  - pytorch
+  - torchmetrics>=0.11.0
+  
+  # Visualization & utilities
+  - matplotlib-base
+  - seaborn
+  - ipython
+  - jupyter
+  - tqdm
+  
+  # Development and testing
+  - pytest>=7.0
+  - pytest-cov>=4.0
+
+
+# Note: After creating the environment, install your package in editable mode:
+#   conda activate max_info_atlases
+#   cd /u/home/r/rwollman/project-rwollman/max_info_cart_v2/code
+#   pip install -e .

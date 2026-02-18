@@ -1,0 +1,262 @@
+# =============================================================================
+# Run Configuration: Local Frequency Features Example
+# =============================================================================
+#
+# This configuration demonstrates running the max-info pipeline on local 
+# frequency features instead of gene expression data.
+#
+# Local frequency features capture the spatial composition of cell types in
+# k-nearest neighbor neighborhoods, providing a representation of the local
+# cellular microenvironment.
+#
+# Usage:
+#   max-info run prepare --config config/local_frequency_example.yaml
+#   max-info run status  --config config/local_frequency_example.yaml
+#   max-info run submit  --config config/local_frequency_example.yaml
+#
+# =============================================================================
+
+run_name: "local_frequency_opt"
+description: "Optimization using local frequency features derived from spatial neighborhoods"
+
+# =============================================================================
+# Input Data
+# =============================================================================
+input:
+  # AnnData file with cell type annotations
+  adata: /u/home/r/rwollman/project-rwollman/max_info_cart_v2/data/input_data/C57BL6J-638850-raw.h5ad
+
+  # Directory containing {section}_XY.npy spatial coordinate files
+  xy_dir: /u/home/r/rwollman/project-rwollman/max_info_cart_v2/data/input_data/xy_coordinates
+
+  # Sections.npy file listing all section labels
+  sections_file: /u/home/r/rwollman/project-rwollman/max_info_cart_v2/data/input_data/Sections.npy
+  
+  # Name of the section column in adata.obs (if it exists there)
+  section_column: brain_section_label
+
+
+# =============================================================================
+# Output Paths
+# =============================================================================
+output:
+  # Root output directory for this run
+  base_dir: /u/home/r/rwollman/project-rwollman/max_info_cart_v2/data/local_frequency_opt
+
+  # Subdirectories (relative to base_dir)
+  features_dir: features
+  graphs_dir: graphs
+  clustering_dir: clustering
+  percolation_dir: percolation_results
+  edge_lists_dir: edge_lists
+  jobs_dir: jobs
+  logs_dir: logs
+
+  # Final aggregated scores (per-section)
+  scores_csv: local_frequency_percolation_scores.csv
+  
+  # Reduced scores (weighted average across sections)
+  reduced_scores_csv: local_frequency_percolation_scores_reduced.csv
+
+# =============================================================================
+# Pipeline Steps
+# =============================================================================
+steps:
+
+  # --------------------------------------------------------------------------
+  # Step 1: Feature Extraction
+  # --------------------------------------------------------------------------
+  # NOTE: data_types is empty because we're using local_frequency instead
+  features:
+    # Traditional expression features (disabled for this example)
+    data_types: []
+
+    # Local frequency features
+    local_frequency:
+      # Column in adata.obs containing cell type labels
+      type_column: subclass
+      
+      # K values for k-nearest neighbor neighborhoods
+      # Try multiple scales to capture different spatial contexts
+      k_values: [20, 100]
+      
+      # Weighting mode:
+      #   false: raw counts of neighbors
+      #   true: Gaussian-weighted counts (scale = 2 * 5th neighbor distance)
+      #   [false, true]: compute both variants for comparison
+      weighted: [false, true]
+    
+    # Derived features computed from local frequency features
+    derived:
+      # PCA dimensionality reduction of frequency tables
+      - operation: pca
+        source: local_frequency    # Apply to ALL local frequency features
+        n_components: [15]         # Two PCA variants
+        scale: true                # Standardize before PCA
+
+  # --------------------------------------------------------------------------
+  # Step 2: Graph Construction
+  # --------------------------------------------------------------------------
+  # Builds kNN graphs from feature matrices.
+  # Output: {graphs_dir}/FEL_{data_type}_{distance}.npy
+  graphs:
+    k: 15
+    distances:
+      - cosine
+
+  # --------------------------------------------------------------------------
+  # Step 3: Clustering
+  # --------------------------------------------------------------------------
+  # Runs clustering on each graph at multiple resolutions.
+  # Each method produces: {clustering_dir}/{FolderName}/res_{idx}/{section}.npy
+  #
+  # data_types supports:
+  #   - Explicit list: [localfreq_k50, localfreq_k100]
+  #   - All features: all
+  #   - Wildcards: ["localfreq_k*", "localfreq_pca15_*"]
+  clustering:
+    leiden:
+      enabled: true
+      # Option 1: Explicit list (precise control)
+      # data_types:
+      #   - localfreq_k50
+      #   - localfreq_w_k50
+      #   - localfreq_pca15_k50
+      #   - localfreq_w_pca15_k50
+      
+      # Option 2: Use wildcards (flexible)
+      # data_types:
+      #   - "localfreq_*_k50"     # All k50 variants (weighted and unweighted)
+      #   - "localfreq_pca15_*"   # All PCA15 variants
+      
+      # Option 3: Use all features (comprehensive)
+      data_types: all
+      
+      distances: [correlation]
+      n_resolutions: 5   # 0 to 9
+
+    phenograph:
+      enabled: false
+      # Example: wildcard pattern to get all unweighted features
+      data_types:
+        - "localfreq_k*"        # All unweighted: k20, k50, k100, k200
+        - "localfreq_pca*_k50"  # All PCA variants of k50
+      distances: [correlation, cosine, euclidean]
+      n_resolutions: 10   # 0 to 9
+
+
+  # --------------------------------------------------------------------------
+  # Step 4: Percolation Analysis
+  # --------------------------------------------------------------------------
+  # Scores each clustering/annotation using percolation.
+  # Output: {percolation_dir}/{FolderName}/res_{idx}/{section}.score
+  percolation:
+    max_k: 500
+    pbond_steps: 101
+
+  # --------------------------------------------------------------------------
+  # Step 5: Aggregation
+  # --------------------------------------------------------------------------
+  # Collects all .score files into a single CSV.
+  aggregation:
+    output_csv: local_frequency_percolation_scores.csv
+
+# =============================================================================
+# HPC / UGE Settings
+# =============================================================================
+hpc:
+  conda_env: max_info_atlases
+  default_chunk_size: 6000
+
+  # Per-step resource requests
+  resources:
+    features:
+      memory: "64G"
+      runtime: "2:00:00"
+      chunk_size: 1         # Each feature processes entire dataset
+    graphs:
+      memory: "128G"
+      runtime: "4:00:00"
+      chunk_size: 1         # Few heavy jobs
+    clustering:
+      memory: "64G"
+      runtime: "2:00:00"
+      chunk_size: 5         # Many lighter jobs
+    percolation:
+      memory: "16G"
+      runtime: "3:00:00"
+      chunk_size: 10         # Many fast jobs
+    aggregation:
+      memory: "8G"
+      runtime: "1:00:00"
+      chunk_size: 1000000   # Single job
+
+
+# =============================================================================
+# Notes on Local Frequency Features
+# =============================================================================
+#
+# Feature Generation:
+# -------------------
+# This config will generate the following features:
+#
+# Base local frequency features (8 total):
+#   - localfreq_k20      (unweighted, k=20)
+#   - localfreq_k50      (unweighted, k=50)
+#   - localfreq_k100     (unweighted, k=100)
+#   - localfreq_k200     (unweighted, k=200)
+#   - localfreq_w_k20    (weighted, k=20)
+#   - localfreq_w_k50    (weighted, k=50)
+#   - localfreq_w_k100   (weighted, k=100)
+#   - localfreq_w_k200   (weighted, k=200)
+#
+# Derived PCA features (16 total):
+#   - localfreq_pca15_k20, localfreq_pca50_k20
+#   - localfreq_pca15_k50, localfreq_pca50_k50
+#   - localfreq_pca15_k100, localfreq_pca50_k100
+#   - localfreq_pca15_k200, localfreq_pca50_k200
+#   - localfreq_w_pca15_k20, localfreq_w_pca50_k20
+#   - localfreq_w_pca15_k50, localfreq_w_pca50_k50
+#   - localfreq_w_pca15_k100, localfreq_w_pca50_k100
+#   - localfreq_w_pca15_k200, localfreq_w_pca50_k200
+#
+# Total: 24 feature matrices
+#
+# Clustering:
+# -----------
+# The config above selects 4 features for clustering:
+#   - localfreq_k50, localfreq_w_k50
+#   - localfreq_pca15_k50, localfreq_w_pca15_k50
+#
+# With 3 distances and 10 resolutions each:
+#   Leiden: 4 features × 3 distances × 10 resolutions = 120 configurations
+#   Preexisting: 4 levels
+#   Total: 124 clustering configurations (PhenoGraph disabled)
+#
+# Wildcard and "all" Support:
+# ----------------------------
+# You can use wildcards and "all" in data_types:
+#
+#   # Use all features
+#   data_types: all
+#
+#   # Wildcard patterns
+#   data_types:
+#     - "localfreq_k*"        # All unweighted k variants
+#     - "localfreq_w_*"       # All weighted variants
+#     - "localfreq_pca15_*"   # All PCA15 variants
+#     - "localfreq_*_k50"     # All k50 variants
+#
+#   # Mix explicit and wildcards
+#   data_types:
+#     - localfreq_k50         # Explicit
+#     - "localfreq_pca*_k100" # Wildcard
+#
+# Interpretation:
+# ---------------
+# - Unweighted features capture raw neighborhood counts
+# - Weighted features emphasize nearby cells (Gaussian decay)
+# - PCA captures dominant patterns in neighborhood composition
+# - Comparing k values reveals scale-dependent spatial organization
+#
+# =============================================================================

@@ -1,0 +1,167 @@
+# =============================================================================
+# Run Configuration: Cell Type Optimization
+# =============================================================================
+#
+# This file declaratively defines the FULL combinatorial space for one run
+# of the max-info pipeline. It is the single source of truth for:
+#   - What methods/data_types/distances/resolutions to compute
+#   - Where input data lives and where outputs go
+#   - HPC resource requirements
+#
+# Usage:
+#   max-info run prepare --config config/run_cell_type_opt.yaml
+#   max-info run status  --config config/run_cell_type_opt.yaml
+#   max-info run submit  --config config/run_cell_type_opt.yaml
+#
+# =============================================================================
+
+run_name: "cell_type_opt"
+description: "Cell type clustering optimization - all methods, data types, and distances"
+
+# =============================================================================
+# Input Data
+# =============================================================================
+input:
+  # AnnData file with gene expression
+  adata: /u/home/r/rwollman/project-rwollman/max_info_cart_v2/data/input_data/C57BL6J-638850-raw.h5ad
+
+  # Directory containing {section}_XY.npy spatial coordinate files
+  xy_dir: /u/home/r/rwollman/project-rwollman/max_info_cart_v2/data/input_data/xy_coordinates
+
+  # Sections.npy file listing all section labels
+  sections_file: /u/home/r/rwollman/project-rwollman/max_info_cart_v2/data/input_data/Sections.npy
+  
+  # Name of the section column in adata.obs (if it exists there)
+  section_column: brain_section_label
+
+  # Preexisting annotations that already live in adata.obs columns.
+  # Map each annotation level name to its .obs column name.
+  preexisting_obs_columns:
+    class: class
+    cluster: cluster
+    subclass: subclass
+    supertype: supertype
+
+# =============================================================================
+# Output Paths
+# =============================================================================
+output:
+  # Root output directory for this run
+  base_dir: /u/home/r/rwollman/project-rwollman/max_info_cart_v2/data/cell_type_opt
+
+  # Subdirectories (relative to base_dir)
+  features_dir: features
+  graphs_dir: graphs
+  clustering_dir: clustering
+  percolation_dir: percolation_results
+  edge_lists_dir: edge_lists
+  jobs_dir: jobs
+  logs_dir: logs
+
+  # Final aggregated scores (per-section)
+  scores_csv: cell_type_percolation_scores.csv
+  
+  # Reduced scores (weighted average across sections)
+  reduced_scores_csv: cell_type_percolation_scores_reduced.csv
+
+# =============================================================================
+# Pipeline Steps
+# =============================================================================
+steps:
+
+  # --------------------------------------------------------------------------
+  # Step 1: Feature Extraction
+  # --------------------------------------------------------------------------
+  # Extracts feature matrices from AnnData for each data_type.
+  # Output: {features_dir}/features_{data_type}.npy
+  features:
+    data_types:
+      - raw
+      - log1p
+      - pca50
+      - scvi
+
+  # --------------------------------------------------------------------------
+  # Step 2: Graph Construction
+  # --------------------------------------------------------------------------
+  # Builds kNN graphs from feature matrices.
+  # Output: {graphs_dir}/FEL_{data_type}_{distance}.npy
+  graphs:
+    k: 15
+    distances:
+      - correlation
+      - cosine
+      - euclidean
+
+  # --------------------------------------------------------------------------
+  # Step 3: Clustering
+  # --------------------------------------------------------------------------
+  # Runs clustering on each graph at multiple resolutions.
+  # Each method produces: {clustering_dir}/{FolderName}/res_{idx}/{section}.npy
+  clustering:
+    leiden:
+      enabled: true
+      data_types: [raw, log1p, pca50,scvi]
+      distances: [correlation, cosine, euclidean]
+      n_resolutions: 50   # 0 to 49
+
+    phenograph:
+      enabled: true
+      data_types: [raw, log1p, pca50,scvi]
+      distances: [correlation, cosine, euclidean]
+      n_resolutions: 50   # 0 to 49
+
+    # Preexisting annotations - no clustering needed, just percolation
+    preexisting:
+      enabled: true
+      levels:
+        - class
+        - cluster
+        - subclass
+        - supertype
+
+  # --------------------------------------------------------------------------
+  # Step 4: Percolation Analysis
+  # --------------------------------------------------------------------------
+  # Scores each clustering/annotation using percolation.
+  # Output: {percolation_dir}/{FolderName}/res_{idx}/{section}.score
+  percolation:
+    max_k: 500
+    pbond_steps: 101
+
+  # --------------------------------------------------------------------------
+  # Step 5: Aggregation
+  # --------------------------------------------------------------------------
+  # Collects all .score files into a single CSV.
+  aggregation:
+    output_csv: small_percolation_scores.csv
+
+# =============================================================================
+# HPC / UGE Settings
+# =============================================================================
+hpc:
+  conda_env: max_info_atlases
+  default_chunk_size: 6000
+
+  # Per-step resource requests
+  resources:
+    features:
+      memory: "64G"
+      runtime: "24:00:00"
+      chunk_size: 1         # Each data type processes entire dataset independently
+    graphs:
+      memory: "256G"
+      runtime: "4:00:00"
+      chunk_size: 1        # few heavy jobs
+    clustering:
+      memory: "128G"
+      runtime: "2:00:00"
+      chunk_size: 5       # many lighter jobs
+    percolation:
+      memory: "32G"
+      runtime: "2:00:00"
+      chunk_size: 60      # many fast jobs
+    aggregation:
+      memory: "8G"
+      runtime: "1:00:00"
+      chunk_size: 1000000   # single job

@@ -1,0 +1,4 @@
+include README.md
+include TESTING.md
+recursive-include src/max_info_atlases/cython *.pyx *.pxd
+recursive-include config *.yaml

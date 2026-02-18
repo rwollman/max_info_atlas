@@ -1,0 +1,114 @@
+# =============================================================================
+# Wildcard and "all" Feature Demonstration
+# =============================================================================
+#
+# This is a minimal config demonstrating the wildcard and "all" support
+# for data_types in clustering configuration.
+#
+# Usage:
+#   max-info run summary --config config/wildcard_demo.yaml
+#
+# =============================================================================
+
+run_name: "wildcard_demo"
+description: "Demonstration of wildcard and 'all' data_types support"
+
+input:
+  adata: /path/to/data.h5ad
+  xy_dir: /path/to/xy_coordinates
+  sections_file: /path/to/Sections.npy
+  section_column: brain_section_label
+
+output:
+  base_dir: /path/to/output
+
+steps:
+  features:
+    # Generate multiple local frequency features
+    local_frequency:
+      type_column: cell_type
+      k_values: [20, 50, 100]
+      weighted: [false, true]  # Both weighted and unweighted
+    
+    # Generate PCA variants
+    derived:
+      - operation: pca
+        source: local_frequency
+        n_components: [15, 50]
+  
+  graphs:
+    k: 15
+    distances: [correlation, cosine]
+  
+  clustering:
+    # Example 1: Use all features
+    leiden:
+      enabled: true
+      data_types: all  # Uses ALL generated features
+      distances: [correlation]
+      n_resolutions: 5
+    
+    # Example 2: Wildcard - all unweighted features
+    phenograph:
+      enabled: true
+      data_types:
+        - "localfreq_k*"  # Matches: localfreq_k20, localfreq_k50, localfreq_k100
+      distances: [cosine]
+      n_resolutions: 5
+    
+    # Example 3: Wildcard - all k50 variants
+    kmeans:
+      enabled: true
+      data_types:
+        - "localfreq_*_k50"  # Matches: localfreq_k50, localfreq_w_k50
+        - "localfreq_*_pca*_k50"  # Matches: localfreq_pca15_k50, localfreq_pca50_k50, localfreq_w_pca15_k50, localfreq_w_pca50_k50
+      distances: [correlation]
+      n_resolutions: 5
+  
+  percolation:
+    max_k: 500
+    pbond_steps: 101
+
+hpc:
+  conda_env: max_info_atlases
+
+
+# =============================================================================
+# What features are generated?
+# =============================================================================
+#
+# From local_frequency config (k_values: [20, 50, 100], weighted: [false, true]):
+#   localfreq_k20, localfreq_k50, localfreq_k100
+#   localfreq_w_k20, localfreq_w_k50, localfreq_w_k100
+#
+# From derived config (PCA with n_components: [15, 50]):
+#   localfreq_pca15_k20, localfreq_pca50_k20
+#   localfreq_pca15_k50, localfreq_pca50_k50
+#   localfreq_pca15_k100, localfreq_pca50_k100
+#   localfreq_w_pca15_k20, localfreq_w_pca50_k20
+#   localfreq_w_pca15_k50, localfreq_w_pca50_k50
+#   localfreq_w_pca15_k100, localfreq_w_pca50_k100
+#
+# Total: 18 features
+#
+# =============================================================================
+# What features are used for clustering?
+# =============================================================================
+#
+# Leiden (data_types: all):
+#   ALL 18 features × 1 distance × 5 resolutions = 90 configs
+#
+# PhenoGraph (data_types: ["localfreq_k*"]):
+#   Matches: localfreq_k20, localfreq_k50, localfreq_k100
+#   3 features × 1 distance × 5 resolutions = 15 configs
+#
+# KMeans (data_types: ["localfreq_*_k50", "localfreq_*_pca*_k50"]):
+#   Matches:
+#     - localfreq_k50, localfreq_w_k50
+#     - localfreq_pca15_k50, localfreq_pca50_k50
+#     - localfreq_w_pca15_k50, localfreq_w_pca50_k50
+#   6 features × 1 distance × 5 resolutions = 30 configs
+#
+# Total: 135 clustering configurations
+#
+# =============================================================================

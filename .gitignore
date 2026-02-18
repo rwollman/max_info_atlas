@@ -1,0 +1,17 @@
+# Compiled Python
+__pycache__/
+*.pyc
+*.pyd
+
+# C extensions
+*.o
+*.so
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Test outputs (optional, keep if you want them)
+test_full_aggregation.csv
+test_scores_*.csv
