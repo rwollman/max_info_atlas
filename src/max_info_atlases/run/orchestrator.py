@@ -218,24 +218,52 @@ class RunOrchestrator:
         """
         Generate job list for graph construction.
         
-        Format: input_file\\toutput_file\\tk\\tmetric
+        Formats:
+        - kNN only: knn\\tinput_file\\tfel_output\\tk\\tmetric
+        - kNN + PhenoGraph Jaccard: knn_phenograph\\tinput_file\\tfel_output\\tpg_output\\tk\\tmetric\\tk_jaccard
         """
         config = self.config
         jobs = []
+
+        # Build required PhenoGraph graph specs keyed by (data_type, distance)
+        phenograph_specs = {}
+        for dt, dist, k_jaccard in config.phenograph_graph_specs:
+            key = (dt, dist)
+            if key in phenograph_specs and phenograph_specs[key] != k_jaccard:
+                raise ValueError(
+                    f"Conflicting PhenoGraph k_jaccard for {dt}/{dist}: "
+                    f"{phenograph_specs[key]} vs {k_jaccard}"
+                )
+            phenograph_specs[key] = k_jaccard
         
         for dt in config.feature_data_types:
             for dist in config.graph_distances:
                 input_file = config.features_dir / f"features_{dt}.npy"
-                output_file = config.graphs_dir / f"FEL_{dt}_{dist}.npy"
-                
-                # Check if output already exists
-                if self.skip_completed and output_file.exists():
-                    print(f"  Skipping {dt}/{dist} (already exists: {output_file})")
-                    continue
-                    
-                jobs.append(
-                    f"{input_file}\t{output_file}\t{config.graph_k}\t{dist}"
-                )
+                fel_output = config.graphs_dir / f"FEL_{dt}_{dist}.npy"
+
+                if (dt, dist) in phenograph_specs:
+                    # This pair needs both the base kNN graph and the PhenoGraph Jaccard graph.
+                    k_jaccard = phenograph_specs[(dt, dist)]
+                    pg_output = config.graphs_dir / f"PG_{dt}_{dist}.npz"
+
+                    if self.skip_completed and fel_output.exists() and pg_output.exists():
+                        print(
+                            f"  Skipping {dt}/{dist} (already exists: {fel_output}, {pg_output})"
+                        )
+                        continue
+
+                    jobs.append(
+                        f"knn_phenograph\t{input_file}\t{fel_output}\t{pg_output}\t"
+                        f"{config.graph_k}\t{dist}\t{k_jaccard}"
+                    )
+                else:
+                    if self.skip_completed and fel_output.exists():
+                        print(f"  Skipping {dt}/{dist} (already exists: {fel_output})")
+                        continue
+
+                    jobs.append(
+                        f"knn\t{input_file}\t{fel_output}\t{config.graph_k}\t{dist}"
+                    )
         
         return jobs
     
@@ -255,24 +283,29 @@ class RunOrchestrator:
         for method in config.methods:
             if method.name not in ('leiden', 'phenograph'):
                 continue  # Preexisting has no clustering step
-            
+
             for dt in method.data_types:
                 for dist in method.distances:
-                    # Input graph file
-                    graph_file = config.graphs_dir / f"FEL_{dt}_{dist}.npy"
-                    
+                    # Input graph file depends on method:
+                    # - Leiden uses base kNN graph
+                    # - PhenoGraph uses precomputed Jaccard graph
+                    if method.name == 'phenograph':
+                        graph_file = config.graphs_dir / f"PG_{dt}_{dist}.npz"
+                    else:
+                        graph_file = config.graphs_dir / f"FEL_{dt}_{dist}.npy"
+
                     # Output folder name
                     method_str = 'Leiden' if method.name == 'leiden' else 'PhenoGraph'
                     folder = build_folder_name(method_str, dt, dist)
                     output_dir = config.clustering_dir / folder
-                    
+
                     # Get actual resolution values for this method
                     resolution_values = get_resolution_values(method.n_resolutions)
-                    
+
                     for res_idx in range(method.n_resolutions):
                         resolution = resolution_values[res_idx]
                         res_dirname = format_resolution_dirname(resolution)
-                        
+
                         # Check if all section outputs already exist
                         if self.skip_completed:
                             res_dir = output_dir / res_dirname
@@ -285,11 +318,11 @@ class RunOrchestrator:
                                         break
                             else:
                                 all_exist = False
-                            
+
                             if all_exist:
                                 skipped += 1
                                 continue
-                        
+
                         jobs.append(
                             f"{method.name}\t{graph_file}\t{output_dir}\t{res_idx}\t{config.sections_file}"
                         )

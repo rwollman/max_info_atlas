@@ -1061,11 +1061,12 @@ def run_features(chunk_file):
 
 @cli.command('run-graph')
 @click.option('--chunk-file', '-f', required=True, type=click.Path(exists=True),
-              help='Chunk file with job parameters (input_file\\toutput_file\\tk\\tmetric)')
+              help='Chunk file with graph job parameters')
 def run_graph(chunk_file):
     """Worker for graph construction (processes chunk of graph jobs)."""
     from ..uge.job_generator import read_job_list
     from ..features.graphs import build_knn_graph_from_file
+    from ..clustering.phenograph import compute_jaccard_graph
     import numpy as np
     
     jobs = read_job_list(chunk_file)
@@ -1073,16 +1074,58 @@ def run_graph(chunk_file):
     
     for job in jobs:
         parts = job.split('\t')
-        if len(parts) < 4:
+        if len(parts) >= 7 and parts[0] == 'knn_phenograph':
+            _, input_file, fel_output, pg_output, k, metric, k_jaccard = parts[:7]
+            k = int(k)
+            k_jaccard = int(k_jaccard)
+
+            click.echo(
+                f"  Building kNN + PhenoGraph graph: {input_file} "
+                f"-> {fel_output}, {pg_output} (k={k}, metric={metric}, k_jaccard={k_jaccard})"
+            )
+
+            Path(fel_output).parent.mkdir(parents=True, exist_ok=True)
+            Path(pg_output).parent.mkdir(parents=True, exist_ok=True)
+
+            # Base kNN graph (Leiden input)
+            edge_list = build_knn_graph_from_file(input_file, k=k, metric=metric)
+            np.save(fel_output, edge_list)
+
+            # PhenoGraph weighted graph (computed once in graph step)
+            jaccard_edges, jaccard_weights = compute_jaccard_graph(
+                edge_list=edge_list,
+                k_jaccard=k_jaccard,
+            )
+            n_nodes = int(edge_list.max()) + 1 if edge_list.size > 0 else 0
+            np.savez(
+                pg_output,
+                edges=jaccard_edges,
+                weights=jaccard_weights,
+                n_nodes=n_nodes,
+                k_jaccard=k_jaccard,
+                source_fel=fel_output,
+            )
+
+        elif len(parts) >= 5 and parts[0] == 'knn':
+            _, input_file, output_file, k, metric = parts[:5]
+            k = int(k)
+            click.echo(f"  Building kNN graph: {input_file} -> {output_file} (k={k}, metric={metric})")
+
+            Path(output_file).parent.mkdir(parents=True, exist_ok=True)
+            edge_list = build_knn_graph_from_file(input_file, k=k, metric=metric)
+            np.save(output_file, edge_list)
+
+        elif len(parts) >= 4:
+            # Legacy format: input_file\\toutput_file\\tk\\tmetric
+            input_file, output_file, k, metric = parts[0], parts[1], int(parts[2]), parts[3]
+            click.echo(f"  Building graph: {input_file} -> {output_file} (k={k}, metric={metric})")
+
+            Path(output_file).parent.mkdir(parents=True, exist_ok=True)
+            edge_list = build_knn_graph_from_file(input_file, k=k, metric=metric)
+            np.save(output_file, edge_list)
+        else:
             click.echo(f"  Skipping malformed job: {job}", err=True)
             continue
-        
-        input_file, output_file, k, metric = parts[0], parts[1], int(parts[2]), parts[3]
-        click.echo(f"  Building graph: {input_file} -> {output_file} (k={k}, metric={metric})")
-        
-        Path(output_file).parent.mkdir(parents=True, exist_ok=True)
-        edge_list = build_knn_graph_from_file(input_file, k=k, metric=metric)
-        np.save(output_file, edge_list)
     
     click.echo(f"✓ Completed {len(jobs)} graph jobs")
 

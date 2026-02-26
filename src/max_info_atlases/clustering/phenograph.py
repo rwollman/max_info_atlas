@@ -3,12 +3,10 @@ PhenoGraph clustering implementation.
 
 PhenoGraph is a variant of Leiden clustering that uses a Jaccard-weighted graph
 based on shared neighbors instead of the raw kNN graph. Uses an efficient
-cell-centric algorithm with set operations, batching, and checkpointing.
+cell-centric algorithm with set operations and batching.
 """
 
-import os
 import time
-import pickle
 import heapq
 from collections import defaultdict
 from pathlib import Path
@@ -34,7 +32,6 @@ def compute_jaccard_graph(
     edge_list: np.ndarray,
     k_jaccard: int = 15,
     batch_size: int = 5000,
-    temp_dir: Optional[Union[str, Path]] = None,
     cell_timeout: int = 600,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -43,13 +40,12 @@ def compute_jaccard_graph(
     Uses a memory-efficient, cell-centric algorithm: for each cell i, finds
     potential neighbors (cells that share at least one neighbor with i),
     computes Jaccard similarity via set operations, and keeps top-k_jaccard
-    per cell. Supports checkpointing for resumability.
+    per cell.
 
     Args:
         edge_list: kNN edge list of shape (n_edges, 2) with [source, target]
         k_jaccard: Number of top Jaccard neighbors to keep per cell
         batch_size: Cells per batch for memory management
-        temp_dir: Directory for checkpoint files (enables resumability)
         cell_timeout: Seconds per cell before skipping (0 = no timeout)
 
     Returns:
@@ -65,138 +61,70 @@ def compute_jaccard_graph(
     avg_k = np.mean([len(s) for s in nn_indices_filtered])
     print(f"  Avg neighbors per cell: {avg_k:.1f}")
 
-    # Temp dir for checkpointing
-    acquired_lock = False
-    if temp_dir:
-        temp_path = Path(temp_dir)
-        temp_path.mkdir(parents=True, exist_ok=True)
-        
-        complete_marker = temp_path / "complete.marker"
-        lock_file = temp_path / "computing.lock"
-        
-        # Check if computation is already complete
-        if complete_marker.exists():
-            print(f"  Found complete Jaccard computation: {temp_path}")
-            batches = sorted(temp_path.glob("jaccard_batch_*.pkl"))
-            reusing = True
-        else:
-            # Try to acquire lock (atomic file creation)
-            try:
-                fd = os.open(str(lock_file), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
-                os.write(fd, f"pid={os.getpid()}\n".encode())
-                os.close(fd)
-                print(f"  Acquired lock - will compute Jaccard")
-                acquired_lock = True
-                reusing = False
-            except FileExistsError:
-                # Another job is computing - wait for it
-                print(f"  Another job is computing Jaccard - waiting...")
-                for wait_iter in range(300):  # Wait up to 5 hours (60s * 300)
-                    time.sleep(60)
-                    if complete_marker.exists():
-                        print(f"  Computation complete - will load checkpoints")
-                        batches = sorted(temp_path.glob("jaccard_batch_*.pkl"))
-                        reusing = True
-                        break
-                else:
-                    print(f"  WARNING: Timeout waiting for Jaccard computation")
-                    print(f"  Will compute anyway (possibly redundant)")
-                    reusing = False
-    else:
-        temp_path = None
-        reusing = False
-        complete_marker = None
-        lock_file = None
-        acquired_lock = False
-
     top_k_neighbors = defaultdict(list)
     start_time = time.time()
+    n_samples = len(nn_indices_filtered)
+    total_batches = (n_samples + batch_size - 1) // batch_size
+    problem_cells = []
 
-    if reusing and temp_path:
-        # Load existing batches
-        batch_files = sorted(temp_path.glob("jaccard_batch_*.pkl"))
-        for bf in batch_files:
-            with open(bf, "rb") as f:
-                batch_dict = pickle.load(f)
-            for src, neighbors in batch_dict.items():
-                current = top_k_neighbors[src]
-                for item in neighbors:
-                    if len(current) < k_jaccard:
-                        heapq.heappush(current, item)
-                    elif item[0] < current[0][0]:
-                        heapq.heappushpop(current, item)
-    else:
-        n_samples = len(nn_indices_filtered)
-        total_batches = (n_samples + batch_size - 1) // batch_size
-        problem_cells = []
+    for batch_idx, batch_start in enumerate(range(0, n_samples, batch_size)):
+        batch_end = min(batch_start + batch_size, n_samples)
+        batch_time = time.time()
+        print(f"  Batch {batch_idx + 1}/{total_batches}: cells {batch_start}-{batch_end}")
 
-        for batch_idx, batch_start in enumerate(range(0, n_samples, batch_size)):
-            batch_end = min(batch_start + batch_size, n_samples)
-            batch_time = time.time()
-            print(f"  Batch {batch_idx + 1}/{total_batches}: cells {batch_start}-{batch_end}")
+        batch_top_k = defaultdict(list)
 
-            batch_top_k = defaultdict(list)
+        for i in range(batch_start, batch_end):
+            cell_start = time.time()
+            neighbors_i = nn_indices_filtered[i]
 
-            for i in range(batch_start, batch_end):
-                cell_start = time.time()
-                neighbors_i = nn_indices_filtered[i]
+            try:
+                potential = set()
+                for nb in neighbors_i:
+                    potential.update(
+                        j for j in nn_indices_filtered[nb] if j != i
+                    )
 
-                try:
-                    potential = set()
-                    for nb in neighbors_i:
-                        potential.update(
-                            j for j in nn_indices_filtered[nb] if j != i
-                        )
+                if len(potential) > 1_000_000:
+                    problem_cells.append((i, len(potential)))
+                    continue
 
-                    if len(potential) > 1_000_000:
-                        problem_cells.append((i, len(potential)))
-                        continue
+                if cell_timeout and (time.time() - cell_start) > cell_timeout:
+                    problem_cells.append((i, -1))
+                    continue
 
-                    if cell_timeout and (time.time() - cell_start) > cell_timeout:
-                        problem_cells.append((i, -1))
-                        continue
+                for j in potential:
+                    neighbors_j = nn_indices_filtered[j]
+                    inter = len(neighbors_i & neighbors_j)
+                    union = len(neighbors_i | neighbors_j)
+                    sim = inter / union if union > 0 else 0.0
 
-                    for j in potential:
-                        neighbors_j = nn_indices_filtered[j]
-                        inter = len(neighbors_i & neighbors_j)
-                        union = len(neighbors_i | neighbors_j)
-                        sim = inter / union if union > 0 else 0.0
+                    if sim > 0:
+                        heap = batch_top_k[i]
+                        if len(heap) < k_jaccard:
+                            heapq.heappush(heap, (-sim, j))
+                        elif -sim > heap[0][0]:
+                            heapq.heappushpop(heap, (-sim, j))
 
-                        if sim > 0:
-                            heap = batch_top_k[i]
-                            if len(heap) < k_jaccard:
-                                heapq.heappush(heap, (-sim, j))
-                            elif -sim > heap[0][0]:
-                                heapq.heappushpop(heap, (-sim, j))
+            except Exception:
+                problem_cells.append((i, -2))
 
-                except Exception:
-                    problem_cells.append((i, -2))
+            if (i - batch_start) % 500 == 0 and (i - batch_start) > 0:
+                print(f"    Processed {i - batch_start}/{batch_end - batch_start}")
 
-                if (i - batch_start) % 500 == 0 and (i - batch_start) > 0:
-                    print(f"    Processed {i - batch_start}/{batch_end - batch_start}")
+        for src, heap in batch_top_k.items():
+            current = top_k_neighbors[src]
+            for item in heap:
+                if len(current) < k_jaccard:
+                    heapq.heappush(current, item)
+                elif item[0] < current[0][0]:
+                    heapq.heappushpop(current, item)
 
-            for src, heap in batch_top_k.items():
-                current = top_k_neighbors[src]
-                for item in heap:
-                    if len(current) < k_jaccard:
-                        heapq.heappush(current, item)
-                    elif item[0] < current[0][0]:
-                        heapq.heappushpop(current, item)
+        elapsed = time.time() - batch_time
+        print(f"  Batch {batch_idx + 1} completed in {elapsed:.1f}s")
 
-            elapsed = time.time() - batch_time
-            print(f"  Batch {batch_idx + 1} completed in {elapsed:.1f}s")
-
-            if temp_path:
-                pkl = temp_path / f"jaccard_batch_{batch_idx + 1}.pkl"
-                with open(pkl, "wb") as f:
-                    pickle.dump(dict(batch_top_k), f)
-
-        if problem_cells and temp_path:
-            prob_file = temp_path / "problem_cells.txt"
-            with open(prob_file, "w") as f:
-                for c, info in problem_cells:
-                    f.write(f"{c},{info}\n")
-            print(f"  WARNING: {len(problem_cells)} problem cells skipped")
+    if problem_cells:
+        print(f"  WARNING: {len(problem_cells)} problem cells skipped")
 
     # Convert to edge list and weights
     edges_list = []
@@ -208,13 +136,6 @@ def compute_jaccard_graph(
 
     elapsed = time.time() - start_time
     print(f"  Jaccard graph done in {elapsed:.1f}s, {len(edges_list):,} edges")
-
-    # Mark computation as complete and release lock (only if we acquired it)
-    if temp_path and acquired_lock and complete_marker:
-        complete_marker.touch()
-        if lock_file and lock_file.exists():
-            lock_file.unlink()
-        print(f"  Checkpoints saved and marked complete")
 
     if not edges_list:
         return np.zeros((0, 2), dtype=np.int32), np.zeros(0, dtype=np.float32)
@@ -239,7 +160,6 @@ class PhenoGraphClustering(ClusteringMethod):
         n_resolutions: int = 50,
         objective: str = 'modularity',
         k_jaccard: int = 15,
-        temp_dir: Optional[Union[str, Path]] = None,
     ):
         """
         Initialize PhenoGraph clustering.
@@ -250,12 +170,10 @@ class PhenoGraphClustering(ClusteringMethod):
             n_resolutions: Number of resolution values in standard array
             objective: Objective function ('modularity' or 'CPM')
             k_jaccard: Top-k Jaccard neighbors per cell
-            temp_dir: Directory for Jaccard checkpointing (enables resumability)
         """
         self.n_resolutions = n_resolutions
         self.objective = objective
         self.k_jaccard = k_jaccard
-        self.temp_dir = Path(temp_dir) if temp_dir else None
 
         # Determine resolution
         if resolution is not None:
@@ -288,13 +206,24 @@ class PhenoGraphClustering(ClusteringMethod):
         jaccard_edges, jaccard_weights = compute_jaccard_graph(
             edge_list,
             k_jaccard=self.k_jaccard,
-            temp_dir=str(self.temp_dir) if self.temp_dir else None,
         )
 
         n_nodes = int(edge_list.max()) + 1
+        return self.fit_weighted_graph(jaccard_edges, jaccard_weights, n_nodes)
 
-        graph = igraph.Graph(n=n_nodes, edges=jaccard_edges.tolist())
-        graph.es['weight'] = jaccard_weights.tolist()
+    def fit_weighted_graph(
+        self,
+        weighted_edges: np.ndarray,
+        weights: np.ndarray,
+        n_nodes: int,
+    ) -> np.ndarray:
+        """
+        Fit PhenoGraph clustering on a precomputed weighted graph.
+        """
+        import igraph
+
+        graph = igraph.Graph(n=n_nodes, edges=weighted_edges.tolist())
+        graph.es['weight'] = weights.tolist()
 
         partition = graph.community_leiden(
             resolution_parameter=self.resolution,
@@ -323,10 +252,10 @@ def run_phenograph_on_file(
     k_jaccard: int = 15,
 ) -> None:
     """
-    Run PhenoGraph clustering on a kNN edge list file and save results by section.
+    Run PhenoGraph clustering on a precomputed weighted graph file and save results by section.
 
     Args:
-        input_npy: Path to kNN edge list .npy file
+        input_npy: Path to precomputed PhenoGraph weighted graph .npz file
         output_folder: Base output folder
         resolution_idx: Resolution index (0-49)
         sections_path: Path to Sections.npy file (for splitting output)
@@ -335,16 +264,25 @@ def run_phenograph_on_file(
     input_npy = Path(input_npy)
     output_folder = Path(output_folder)
 
-    # Temp dir for Jaccard checkpointing (shared across resolutions for same input)
-    temp_dir = output_folder.parent / ".temp_jaccard" / input_npy.stem
+    with np.load(input_npy) as weighted:
+        if 'edges' not in weighted or 'weights' not in weighted:
+            raise ValueError(
+                f"Expected PhenoGraph weighted graph .npz with 'edges' and 'weights': {input_npy}"
+            )
+        weighted_edges = weighted['edges']
+        weights = weighted['weights']
+        if 'n_nodes' in weighted:
+            n_nodes = int(weighted['n_nodes'])
+        elif weighted_edges.size > 0:
+            n_nodes = int(weighted_edges.max()) + 1
+        else:
+            n_nodes = 0
 
-    edge_list = np.load(input_npy)
     clustering = PhenoGraphClustering(
         resolution_idx=resolution_idx,
         k_jaccard=k_jaccard,
-        temp_dir=temp_dir,
     )
-    cluster_assignments = clustering.fit(edge_list)
+    cluster_assignments = clustering.fit_weighted_graph(weighted_edges, weights, n_nodes)
     
     # Save by section if sections provided
     res_dirname = format_resolution_dirname(clustering.resolution)
