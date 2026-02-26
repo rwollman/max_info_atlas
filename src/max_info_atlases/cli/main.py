@@ -1220,13 +1220,17 @@ def run_percolation(chunk_file):
             # Save full results
             gp.save(str(output_file))
             
-            # Save score separately for efficient aggregation
-            score = gp.score()
+            # Save raw + normalized scores separately for efficient aggregation
+            score = gp.raw_score()
+            normalized_score = gp.normalized_score()
             score_file = output_file.with_suffix('.score')
             with open(score_file, 'w') as f:
-                f.write(f"{score}\n")
+                f.write(f"{score}\t{normalized_score}\n")
             
-            click.echo(f"  Processed: {type_file_rel} (score: {score:.4f})")
+            click.echo(
+                f"  Processed: {type_file_rel} "
+                f"(raw_score: {score:.4f}, normalized_score: {normalized_score:.4f})"
+            )
             processed += 1
             
         except Exception as e:

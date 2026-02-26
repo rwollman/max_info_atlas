@@ -400,22 +400,26 @@ class GraphPercolation:
         # Then do the permuted entropy calculation
         self.bond_percolation(permute=True)
 
-    def score(self) -> float:
+    def raw_score(self) -> float:
         """
-        Calculate score based on absolute difference between permuted and real entropy.
-        
+        Calculate the raw (unnormalized) percolation score.
+
         Returns:
-            Percolation score (normalized integrated absolute entropy difference)
+            Integrated absolute entropy difference between permuted and real curves.
         """
         dent = self.ent_perm - self.ent_real
-        
+
         # Make sure arrays are compatible in length
         min_len = min(len(dent), len(self.pbond_vec))
-        
+
         # Use only valid data points for integration
-        scr = np.trapz(np.abs(dent[:min_len]), x=self.pbond_vec[:min_len], axis=0)
-        scr /= np.log2(self.N)
-        return scr
+        return np.trapz(np.abs(dent[:min_len]), x=self.pbond_vec[:min_len], axis=0)
+
+    def score(self) -> float:
+        """
+        Backward-compatible alias for the raw (unnormalized) percolation score.
+        """
+        return self.raw_score()
     
     def save(self, filename: str) -> None:
         """

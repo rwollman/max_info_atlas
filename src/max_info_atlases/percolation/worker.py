@@ -103,7 +103,7 @@ def process_percolation_chunk(
             gp.save(str(output_npz))
             
             # Save both scores separately for efficient aggregation
-            score = gp.score()
+            score = gp.raw_score()
             normalized_score = gp.normalized_score()
             score_file = output_npz.with_suffix('.score')
             with open(score_file, 'w') as f:
