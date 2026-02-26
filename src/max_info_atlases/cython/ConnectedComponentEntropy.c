@@ -11,7 +11,8 @@
             "/u/home/r/rwollman/.conda/envs/max_info_atlases/lib/python3.10/site-packages/numpy/_core/include/numpy/ufuncobject.h"
         ],
         "extra_compile_args": [
-            "-O3"
+            "-O3",
+            "-std=c99"
         ],
         "include_dirs": [
             "/u/home/r/rwollman/.conda/envs/max_info_atlases/lib/python3.10/site-packages/numpy/_core/include"
@@ -3059,10 +3060,11 @@ static int __pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25Con
 static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_2merge(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self, int __pyx_v_x, int __pyx_v_y, int __pyx_v_calculate_entropy); /* proto */
 static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_4entropy_value(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_6merge_all(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self, PyArrayObject *__pyx_v_edges, CYTHON_UNUSED PyArrayObject *__pyx_v_p_values); /* proto */
+static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_8get_roots(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_7entropy___get__(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self); /* proto */
 static int __pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_7entropy_2__set__(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
-static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_8__reduce_cython__(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_10__setstate_cython__(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_10__reduce_cython__(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_12__setstate_cython__(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy___pyx_unpickle_ConnectedComponentEntropy(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_tp_new_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 /* #### Code section: late_includes ### */
@@ -3107,8 +3109,8 @@ typedef struct {
   __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_pop;
   __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_values;
   PyObject *__pyx_tuple[2];
-  PyObject *__pyx_codeobj_tab[6];
-  PyObject *__pyx_string_tab[93];
+  PyObject *__pyx_codeobj_tab[7];
+  PyObject *__pyx_string_tab[97];
   PyObject *__pyx_number_tab[3];
 /* #### Code section: module_state_contents ### */
 /* CommonTypesMetaclass.module_state_decls */
@@ -3171,78 +3173,82 @@ static __pyx_mstatetype * const __pyx_mstate_global = &__pyx_mstate_global_stati
 #define __pyx_n_u_ConnectedComponentEntropy___redu __pyx_string_tab[18]
 #define __pyx_n_u_ConnectedComponentEntropy___sets __pyx_string_tab[19]
 #define __pyx_n_u_ConnectedComponentEntropy_entrop __pyx_string_tab[20]
-#define __pyx_n_u_ConnectedComponentEntropy_merge __pyx_string_tab[21]
-#define __pyx_n_u_ConnectedComponentEntropy_merge_2 __pyx_string_tab[22]
-#define __pyx_n_u_Pyx_PyDict_NextRef __pyx_string_tab[23]
-#define __pyx_n_u_arange __pyx_string_tab[24]
-#define __pyx_n_u_array __pyx_string_tab[25]
-#define __pyx_n_u_asyncio_coroutines __pyx_string_tab[26]
-#define __pyx_n_u_calculate_entropy __pyx_string_tab[27]
-#define __pyx_n_u_cline_in_traceback __pyx_string_tab[28]
-#define __pyx_n_u_dict __pyx_string_tab[29]
-#define __pyx_n_u_dict_2 __pyx_string_tab[30]
-#define __pyx_n_u_dtype __pyx_string_tab[31]
-#define __pyx_n_u_edges __pyx_string_tab[32]
-#define __pyx_n_u_entropies __pyx_string_tab[33]
-#define __pyx_n_u_entropy_value __pyx_string_tab[34]
-#define __pyx_n_u_float64 __pyx_string_tab[35]
-#define __pyx_n_u_func __pyx_string_tab[36]
-#define __pyx_n_u_getstate __pyx_string_tab[37]
-#define __pyx_n_u_i __pyx_string_tab[38]
-#define __pyx_n_u_int64 __pyx_string_tab[39]
-#define __pyx_n_u_is_coroutine __pyx_string_tab[40]
-#define __pyx_n_u_items __pyx_string_tab[41]
-#define __pyx_n_u_last_calculated __pyx_string_tab[42]
-#define __pyx_n_u_m __pyx_string_tab[43]
-#define __pyx_n_u_main __pyx_string_tab[44]
-#define __pyx_n_u_max_info_atlases_cython_Connecte __pyx_string_tab[45]
-#define __pyx_n_u_merge __pyx_string_tab[46]
-#define __pyx_n_u_merge_all __pyx_string_tab[47]
-#define __pyx_n_u_module __pyx_string_tab[48]
-#define __pyx_n_u_n_section __pyx_string_tab[49]
-#define __pyx_n_u_n_total __pyx_string_tab[50]
-#define __pyx_n_u_name __pyx_string_tab[51]
-#define __pyx_n_u_new __pyx_string_tab[52]
-#define __pyx_n_u_new_size __pyx_string_tab[53]
-#define __pyx_n_u_np __pyx_string_tab[54]
-#define __pyx_n_u_numpy __pyx_string_tab[55]
-#define __pyx_n_u_ones __pyx_string_tab[56]
-#define __pyx_n_u_p_values __pyx_string_tab[57]
-#define __pyx_n_u_pop __pyx_string_tab[58]
-#define __pyx_n_u_pyx_checksum __pyx_string_tab[59]
-#define __pyx_n_u_pyx_result __pyx_string_tab[60]
-#define __pyx_n_u_pyx_state __pyx_string_tab[61]
-#define __pyx_n_u_pyx_type __pyx_string_tab[62]
-#define __pyx_n_u_pyx_unpickle_ConnectedComponen __pyx_string_tab[63]
-#define __pyx_n_u_pyx_vtable __pyx_string_tab[64]
-#define __pyx_n_u_qualname __pyx_string_tab[65]
-#define __pyx_n_u_reduce __pyx_string_tab[66]
-#define __pyx_n_u_reduce_cython __pyx_string_tab[67]
-#define __pyx_n_u_reduce_ex __pyx_string_tab[68]
-#define __pyx_n_u_root_x __pyx_string_tab[69]
-#define __pyx_n_u_root_y __pyx_string_tab[70]
-#define __pyx_n_u_sample_freq __pyx_string_tab[71]
-#define __pyx_n_u_self __pyx_string_tab[72]
-#define __pyx_n_u_set_name __pyx_string_tab[73]
-#define __pyx_n_u_setdefault __pyx_string_tab[74]
-#define __pyx_n_u_setstate __pyx_string_tab[75]
-#define __pyx_n_u_setstate_cython __pyx_string_tab[76]
-#define __pyx_n_u_size_x __pyx_string_tab[77]
-#define __pyx_n_u_size_y __pyx_string_tab[78]
-#define __pyx_n_u_state __pyx_string_tab[79]
-#define __pyx_n_u_test __pyx_string_tab[80]
-#define __pyx_n_u_update __pyx_string_tab[81]
-#define __pyx_n_u_use_setstate __pyx_string_tab[82]
-#define __pyx_n_u_values __pyx_string_tab[83]
-#define __pyx_n_u_x __pyx_string_tab[84]
-#define __pyx_n_u_y __pyx_string_tab[85]
-#define __pyx_n_u_zeros __pyx_string_tab[86]
-#define __pyx_kp_b_iso88591_7q_a __pyx_string_tab[87]
-#define __pyx_kp_b_iso88591_9_2Rr_Bc_2Rr_Bc_Q_A_Qd_3K1DPZZ __pyx_string_tab[88]
-#define __pyx_kp_b_iso88591_A_t1 __pyx_string_tab[89]
-#define __pyx_kp_b_iso88591_T_4z_T_YVZZ_G1F_a_vWE_Q_q_t_G5 __pyx_string_tab[90]
-#define __pyx_kp_b_iso88591_hhi_U_2S_2V1D_b_F_3fBa_t1_3b_1 __pyx_string_tab[91]
-#define __pyx_kp_b_iso88591_q_0_kQR_HAQ_7_1_XXffg_1 __pyx_string_tab[92]
+#define __pyx_n_u_ConnectedComponentEntropy_get_ro __pyx_string_tab[21]
+#define __pyx_n_u_ConnectedComponentEntropy_merge __pyx_string_tab[22]
+#define __pyx_n_u_ConnectedComponentEntropy_merge_2 __pyx_string_tab[23]
+#define __pyx_n_u_Pyx_PyDict_NextRef __pyx_string_tab[24]
+#define __pyx_n_u_arange __pyx_string_tab[25]
+#define __pyx_n_u_array __pyx_string_tab[26]
+#define __pyx_n_u_asyncio_coroutines __pyx_string_tab[27]
+#define __pyx_n_u_calculate_entropy __pyx_string_tab[28]
+#define __pyx_n_u_cline_in_traceback __pyx_string_tab[29]
+#define __pyx_n_u_dict __pyx_string_tab[30]
+#define __pyx_n_u_dict_2 __pyx_string_tab[31]
+#define __pyx_n_u_dtype __pyx_string_tab[32]
+#define __pyx_n_u_edges __pyx_string_tab[33]
+#define __pyx_n_u_entropies __pyx_string_tab[34]
+#define __pyx_n_u_entropy_value __pyx_string_tab[35]
+#define __pyx_n_u_float64 __pyx_string_tab[36]
+#define __pyx_n_u_func __pyx_string_tab[37]
+#define __pyx_n_u_get_roots __pyx_string_tab[38]
+#define __pyx_n_u_getstate __pyx_string_tab[39]
+#define __pyx_n_u_i __pyx_string_tab[40]
+#define __pyx_n_u_int64 __pyx_string_tab[41]
+#define __pyx_n_u_is_coroutine __pyx_string_tab[42]
+#define __pyx_n_u_items __pyx_string_tab[43]
+#define __pyx_n_u_last_calculated __pyx_string_tab[44]
+#define __pyx_n_u_m __pyx_string_tab[45]
+#define __pyx_n_u_main __pyx_string_tab[46]
+#define __pyx_n_u_max_info_atlases_cython_Connecte __pyx_string_tab[47]
+#define __pyx_n_u_merge __pyx_string_tab[48]
+#define __pyx_n_u_merge_all __pyx_string_tab[49]
+#define __pyx_n_u_module __pyx_string_tab[50]
+#define __pyx_n_u_n_section __pyx_string_tab[51]
+#define __pyx_n_u_n_total __pyx_string_tab[52]
+#define __pyx_n_u_name __pyx_string_tab[53]
+#define __pyx_n_u_new __pyx_string_tab[54]
+#define __pyx_n_u_new_size __pyx_string_tab[55]
+#define __pyx_n_u_np __pyx_string_tab[56]
+#define __pyx_n_u_numpy __pyx_string_tab[57]
+#define __pyx_n_u_ones __pyx_string_tab[58]
+#define __pyx_n_u_p_values __pyx_string_tab[59]
+#define __pyx_n_u_pop __pyx_string_tab[60]
+#define __pyx_n_u_pyx_checksum __pyx_string_tab[61]
+#define __pyx_n_u_pyx_result __pyx_string_tab[62]
+#define __pyx_n_u_pyx_state __pyx_string_tab[63]
+#define __pyx_n_u_pyx_type __pyx_string_tab[64]
+#define __pyx_n_u_pyx_unpickle_ConnectedComponen __pyx_string_tab[65]
+#define __pyx_n_u_pyx_vtable __pyx_string_tab[66]
+#define __pyx_n_u_qualname __pyx_string_tab[67]
+#define __pyx_n_u_reduce __pyx_string_tab[68]
+#define __pyx_n_u_reduce_cython __pyx_string_tab[69]
+#define __pyx_n_u_reduce_ex __pyx_string_tab[70]
+#define __pyx_n_u_root_x __pyx_string_tab[71]
+#define __pyx_n_u_root_y __pyx_string_tab[72]
+#define __pyx_n_u_roots __pyx_string_tab[73]
+#define __pyx_n_u_sample_freq __pyx_string_tab[74]
+#define __pyx_n_u_self __pyx_string_tab[75]
+#define __pyx_n_u_set_name __pyx_string_tab[76]
+#define __pyx_n_u_setdefault __pyx_string_tab[77]
+#define __pyx_n_u_setstate __pyx_string_tab[78]
+#define __pyx_n_u_setstate_cython __pyx_string_tab[79]
+#define __pyx_n_u_size_x __pyx_string_tab[80]
+#define __pyx_n_u_size_y __pyx_string_tab[81]
+#define __pyx_n_u_state __pyx_string_tab[82]
+#define __pyx_n_u_test __pyx_string_tab[83]
+#define __pyx_n_u_update __pyx_string_tab[84]
+#define __pyx_n_u_use_setstate __pyx_string_tab[85]
+#define __pyx_n_u_values __pyx_string_tab[86]
+#define __pyx_n_u_x __pyx_string_tab[87]
+#define __pyx_n_u_y __pyx_string_tab[88]
+#define __pyx_n_u_zeros __pyx_string_tab[89]
+#define __pyx_kp_b_iso88591_7q_a __pyx_string_tab[90]
+#define __pyx_kp_b_iso88591_9_2Rr_Bc_2Rr_Bc_Q_A_Qd_3K1DPZZ __pyx_string_tab[91]
+#define __pyx_kp_b_iso88591_A_5BfAT_VSUUV_E_at1_t5_q __pyx_string_tab[92]
+#define __pyx_kp_b_iso88591_A_t1 __pyx_string_tab[93]
+#define __pyx_kp_b_iso88591_T_4z_T_YVZZ_G1F_a_vWE_Q_q_t_G5 __pyx_string_tab[94]
+#define __pyx_kp_b_iso88591_hhi_U_2S_2V1D_b_F_3fBa_t1_3b_1 __pyx_string_tab[95]
+#define __pyx_kp_b_iso88591_q_0_kQR_HAQ_7_1_XXffg_1 __pyx_string_tab[96]
 #define __pyx_int_0 __pyx_number_tab[0]
 #define __pyx_int_1 __pyx_number_tab[1]
 #define __pyx_int_259758081 __pyx_number_tab[2]
@@ -3279,8 +3285,8 @@ static CYTHON_SMALL_CODE int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_ptype_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy);
   Py_CLEAR(clear_module_state->__pyx_type_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy);
   for (int i=0; i<2; ++i) { Py_CLEAR(clear_module_state->__pyx_tuple[i]); }
-  for (int i=0; i<6; ++i) { Py_CLEAR(clear_module_state->__pyx_codeobj_tab[i]); }
-  for (int i=0; i<93; ++i) { Py_CLEAR(clear_module_state->__pyx_string_tab[i]); }
+  for (int i=0; i<7; ++i) { Py_CLEAR(clear_module_state->__pyx_codeobj_tab[i]); }
+  for (int i=0; i<97; ++i) { Py_CLEAR(clear_module_state->__pyx_string_tab[i]); }
   for (int i=0; i<3; ++i) { Py_CLEAR(clear_module_state->__pyx_number_tab[i]); }
 /* #### Code section: module_state_clear_contents ### */
 /* CommonTypesMetaclass.module_state_clear */
@@ -3323,8 +3329,8 @@ static CYTHON_SMALL_CODE int __pyx_m_traverse(PyObject *m, visitproc visit, void
   Py_VISIT(traverse_module_state->__pyx_ptype_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy);
   Py_VISIT(traverse_module_state->__pyx_type_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy);
   for (int i=0; i<2; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_tuple[i]); }
-  for (int i=0; i<6; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_codeobj_tab[i]); }
-  for (int i=0; i<93; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_string_tab[i]); }
+  for (int i=0; i<7; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_codeobj_tab[i]); }
+  for (int i=0; i<97; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_string_tab[i]); }
   for (int i=0; i<3; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_number_tab[i]); }
 /* #### Code section: module_state_traverse_contents ### */
 /* CommonTypesMetaclass.module_state_traverse */
@@ -7434,6 +7440,8 @@ static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy
  *                 entropies[i] = entropies[last_calculated]
  * 
  *         return entropies             # <<<<<<<<<<<<<<
+ * 
+ *     def get_roots(self):
 */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF((PyObject *)__pyx_v_entropies);
@@ -7473,6 +7481,221 @@ static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy
   __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_p_values.rcbuffer->pybuffer);
   __pyx_L2:;
   __Pyx_XDECREF((PyObject *)__pyx_v_entropies);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "max_info_atlases/cython/ConnectedComponentEntropy.pyx":290
+ *         return entropies
+ * 
+ *     def get_roots(self):             # <<<<<<<<<<<<<<
+ *         """
+ *         Force path compression for all nodes and return the root ID for each cell.
+*/
+
+/* Python wrapper */
+static PyObject *__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_9get_roots(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+PyDoc_STRVAR(__pyx_doc_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_8get_roots, "\n        Force path compression for all nodes and return the root ID for each cell.\n        \n        This extracts the current condensed state of the map (the \"zones\"), \n        allowing the Python layer to identify super-nodes for phase 2 macroscopic \n        percolation without breaking the C-level state.\n        \n        Returns:\n        --------\n        np.ndarray\n            1D array of length n_section containing the root ID for each node.\n        ");
+static PyMethodDef __pyx_mdef_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_9get_roots = {"get_roots", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_9get_roots, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_8get_roots};
+static PyObject *__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_9get_roots(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+) {
+  #if !CYTHON_METH_FASTCALL
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  #endif
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("get_roots (wrapper)", 0);
+  #if !CYTHON_METH_FASTCALL
+  #if CYTHON_ASSUME_SAFE_SIZE
+  __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
+  #else
+  __pyx_nargs = PyTuple_Size(__pyx_args); if (unlikely(__pyx_nargs < 0)) return NULL;
+  #endif
+  #endif
+  __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
+  if (unlikely(__pyx_nargs > 0)) { __Pyx_RaiseArgtupleInvalid("get_roots", 1, 0, 0, __pyx_nargs); return NULL; }
+  const Py_ssize_t __pyx_kwds_len = unlikely(__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
+  if (unlikely(__pyx_kwds_len < 0)) return NULL;
+  if (unlikely(__pyx_kwds_len > 0)) {__Pyx_RejectKeywords("get_roots", __pyx_kwds); return NULL;}
+  __pyx_r = __pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_8get_roots(((struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_8get_roots(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self) {
+  PyArrayObject *__pyx_v_roots = 0;
+  int __pyx_v_i;
+  __Pyx_LocalBuf_ND __pyx_pybuffernd_roots;
+  __Pyx_Buffer __pyx_pybuffer_roots;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  size_t __pyx_t_7;
+  int __pyx_t_8;
+  int __pyx_t_9;
+  int __pyx_t_10;
+  int __pyx_t_11;
+  Py_ssize_t __pyx_t_12;
+  int __pyx_t_13;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("get_roots", 0);
+  __pyx_pybuffer_roots.pybuffer.buf = NULL;
+  __pyx_pybuffer_roots.refcount = 0;
+  __pyx_pybuffernd_roots.data = NULL;
+  __pyx_pybuffernd_roots.rcbuffer = &__pyx_pybuffer_roots;
+
+  /* "max_info_atlases/cython/ConnectedComponentEntropy.pyx":304
+ *         """
+ *         # Allocate the output array with the specific C-type
+ *         cdef np.ndarray[np.int64_t, ndim=1] roots = np.zeros(self.n_section, dtype=np.int64)             # <<<<<<<<<<<<<<
+ *         cdef int i
+ * 
+*/
+  __pyx_t_2 = NULL;
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_mstate_global->__pyx_n_u_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_mstate_global->__pyx_n_u_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyLong_From_int(__pyx_v_self->n_section); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_mstate_global->__pyx_n_u_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_mstate_global->__pyx_n_u_int64); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_7 = 1;
+  #if CYTHON_UNPACK_METHODS
+  if (unlikely(PyMethod_Check(__pyx_t_4))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_4);
+    assert(__pyx_t_2);
+    PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_4);
+    __Pyx_INCREF(__pyx_t_2);
+    __Pyx_INCREF(__pyx__function);
+    __Pyx_DECREF_SET(__pyx_t_4, __pyx__function);
+    __pyx_t_7 = 0;
+  }
+  #endif
+  {
+    PyObject *__pyx_callargs[2 + ((CYTHON_VECTORCALL) ? 1 : 0)] = {__pyx_t_2, __pyx_t_3};
+    __pyx_t_5 = __Pyx_MakeVectorcallBuilderKwds(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 304, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_dtype, __pyx_t_6, __pyx_t_5, __pyx_callargs+2, 0) < (0)) __PYX_ERR(0, 304, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_Object_Vectorcall_CallFromBuilder((PyObject*)__pyx_t_4, __pyx_callargs+__pyx_t_7, (2-__pyx_t_7) | (__pyx_t_7*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET), __pyx_t_5);
+    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 304, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+  }
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_mstate_global->__pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 304, __pyx_L1_error)
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_roots.rcbuffer->pybuffer, (PyObject*)((PyArrayObject *)__pyx_t_1), &__Pyx_TypeInfo_nn___pyx_t_5numpy_int64_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) {
+      __pyx_v_roots = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_roots.rcbuffer->pybuffer.buf = NULL;
+      __PYX_ERR(0, 304, __pyx_L1_error)
+    } else {__pyx_pybuffernd_roots.diminfo[0].strides = __pyx_pybuffernd_roots.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_roots.diminfo[0].shape = __pyx_pybuffernd_roots.rcbuffer->pybuffer.shape[0];
+    }
+  }
+  __pyx_v_roots = ((PyArrayObject *)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "max_info_atlases/cython/ConnectedComponentEntropy.pyx":308
+ * 
+ *         # Iterate through all nodes, forcing path compression via find()
+ *         for i in range(self.n_section):             # <<<<<<<<<<<<<<
+ *             roots[i] = self.find(i)
+ * 
+*/
+  __pyx_t_8 = __pyx_v_self->n_section;
+  __pyx_t_9 = __pyx_t_8;
+  for (__pyx_t_10 = 0; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
+    __pyx_v_i = __pyx_t_10;
+
+    /* "max_info_atlases/cython/ConnectedComponentEntropy.pyx":309
+ *         # Iterate through all nodes, forcing path compression via find()
+ *         for i in range(self.n_section):
+ *             roots[i] = self.find(i)             # <<<<<<<<<<<<<<
+ * 
+ *         return roots
+*/
+    __pyx_t_11 = ((struct __pyx_vtabstruct_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *)__pyx_v_self->__pyx_vtab)->find(__pyx_v_self, __pyx_v_i); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 309, __pyx_L1_error)
+    __pyx_t_12 = __pyx_v_i;
+    __pyx_t_13 = -1;
+    if (__pyx_t_12 < 0) {
+      __pyx_t_12 += __pyx_pybuffernd_roots.diminfo[0].shape;
+      if (unlikely(__pyx_t_12 < 0)) __pyx_t_13 = 0;
+    } else if (unlikely(__pyx_t_12 >= __pyx_pybuffernd_roots.diminfo[0].shape)) __pyx_t_13 = 0;
+    if (unlikely(__pyx_t_13 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_13);
+      __PYX_ERR(0, 309, __pyx_L1_error)
+    }
+    *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_int64_t *, __pyx_pybuffernd_roots.rcbuffer->pybuffer.buf, __pyx_t_12, __pyx_pybuffernd_roots.diminfo[0].strides) = __pyx_t_11;
+  }
+
+  /* "max_info_atlases/cython/ConnectedComponentEntropy.pyx":311
+ *             roots[i] = self.find(i)
+ * 
+ *         return roots             # <<<<<<<<<<<<<<
+*/
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF((PyObject *)__pyx_v_roots);
+  __pyx_r = ((PyObject *)__pyx_v_roots);
+  goto __pyx_L0;
+
+  /* "max_info_atlases/cython/ConnectedComponentEntropy.pyx":290
+ *         return entropies
+ * 
+ *     def get_roots(self):             # <<<<<<<<<<<<<<
+ *         """
+ *         Force path compression for all nodes and return the root ID for each cell.
+*/
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  { PyObject *__pyx_type, *__pyx_value, *__pyx_tb;
+    __Pyx_PyThreadState_declare
+    __Pyx_PyThreadState_assign
+    __Pyx_ErrFetch(&__pyx_type, &__pyx_value, &__pyx_tb);
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_roots.rcbuffer->pybuffer);
+  __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
+  __Pyx_AddTraceback("max_info_atlases.cython.ConnectedComponentEntropy.ConnectedComponentEntropy.get_roots", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  goto __pyx_L2;
+  __pyx_L0:;
+  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_roots.rcbuffer->pybuffer);
+  __pyx_L2:;
+  __Pyx_XDECREF((PyObject *)__pyx_v_roots);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -7568,15 +7791,15 @@ static int __pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25Con
 */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_9__reduce_cython__(PyObject *__pyx_v_self, 
+static PyObject *__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_11__reduce_cython__(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-static PyMethodDef __pyx_mdef_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_9__reduce_cython__ = {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_9__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_9__reduce_cython__(PyObject *__pyx_v_self, 
+static PyMethodDef __pyx_mdef_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_11__reduce_cython__ = {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_11__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_11__reduce_cython__(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -7602,14 +7825,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   const Py_ssize_t __pyx_kwds_len = unlikely(__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
   if (unlikely(__pyx_kwds_len < 0)) return NULL;
   if (unlikely(__pyx_kwds_len > 0)) {__Pyx_RejectKeywords("__reduce_cython__", __pyx_kwds); return NULL;}
-  __pyx_r = __pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_8__reduce_cython__(((struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *)__pyx_v_self));
+  __pyx_r = __pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_10__reduce_cython__(((struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_8__reduce_cython__(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self) {
+static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_10__reduce_cython__(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self) {
   PyObject *__pyx_v_state = 0;
   PyObject *__pyx_v__dict = 0;
   int __pyx_v_use_setstate;
@@ -7875,15 +8098,15 @@ static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy
 */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_11__setstate_cython__(PyObject *__pyx_v_self, 
+static PyObject *__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_13__setstate_cython__(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-static PyMethodDef __pyx_mdef_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_11__setstate_cython__ = {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_11__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_11__setstate_cython__(PyObject *__pyx_v_self, 
+static PyMethodDef __pyx_mdef_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_13__setstate_cython__ = {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_13__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_13__setstate_cython__(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -7949,7 +8172,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_10__setstate_cython__(((struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *)__pyx_v_self), __pyx_v___pyx_state);
+  __pyx_r = __pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_12__setstate_cython__(((struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *)__pyx_v_self), __pyx_v___pyx_state);
 
   /* function exit code */
   for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
@@ -7959,7 +8182,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_10__setstate_cython__(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_12__setstate_cython__(struct __pyx_obj_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -8423,8 +8646,9 @@ static PyMethodDef __pyx_methods_16max_info_atlases_6cython_25ConnectedComponent
   {"merge", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_3merge, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_2merge},
   {"entropy_value", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_5entropy_value, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_4entropy_value},
   {"merge_all", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_7merge_all, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_6merge_all},
-  {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_9__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
-  {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_11__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {"get_roots", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_9get_roots, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_8get_roots},
+  {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_11__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_13__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
   {0, 0, 0, 0}
 };
 
@@ -9132,12 +9356,27 @@ __Pyx_RefNannySetupContext("PyInit_ConnectedComponentEntropy", 0);
   if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy, __pyx_mstate_global->__pyx_n_u_merge_all, __pyx_t_2) < (0)) __PYX_ERR(0, 242, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
+  /* "max_info_atlases/cython/ConnectedComponentEntropy.pyx":290
+ *         return entropies
+ * 
+ *     def get_roots(self):             # <<<<<<<<<<<<<<
+ *         """
+ *         Force path compression for all nodes and return the root ID for each cell.
+*/
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_9get_roots, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_ConnectedComponentEntropy_get_ro, NULL, __pyx_mstate_global->__pyx_n_u_max_info_atlases_cython_Connecte, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[3])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 290, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
+  PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
+  #endif
+  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_16max_info_atlases_6cython_25ConnectedComponentEntropy_ConnectedComponentEntropy, __pyx_mstate_global->__pyx_n_u_get_roots, __pyx_t_2) < (0)) __PYX_ERR(0, 290, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
   /* "(tree fragment)":1
  * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
  *     cdef tuple state
  *     cdef object _dict
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_9__reduce_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_ConnectedComponentEntropy___redu, NULL, __pyx_mstate_global->__pyx_n_u_max_info_atlases_cython_Connecte, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[3])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 1, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_11__reduce_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_ConnectedComponentEntropy___redu, NULL, __pyx_mstate_global->__pyx_n_u_max_info_atlases_cython_Connecte, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[4])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -9151,7 +9390,7 @@ __Pyx_RefNannySetupContext("PyInit_ConnectedComponentEntropy", 0);
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
  *     __pyx_unpickle_ConnectedComponentEntropy__set_state(self, __pyx_state)
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_11__setstate_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_ConnectedComponentEntropy___sets, NULL, __pyx_mstate_global->__pyx_n_u_max_info_atlases_cython_Connecte, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[4])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 16, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_16max_info_atlases_6cython_25ConnectedComponentEntropy_25ConnectedComponentEntropy_13__setstate_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_ConnectedComponentEntropy___sets, NULL, __pyx_mstate_global->__pyx_n_u_max_info_atlases_cython_Connecte, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[5])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 16, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -9166,7 +9405,7 @@ __Pyx_RefNannySetupContext("PyInit_ConnectedComponentEntropy", 0);
  *     cdef object __pyx_result
  *     __Pyx_CheckUnpickleChecksum(__pyx_checksum, 0xf7b9801, 0x9ac556e, 0xf8dfad0, b'component_sizes, entropy, n, n_section, parent, size')
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_16max_info_atlases_6cython_25ConnectedComponentEntropy_1__pyx_unpickle_ConnectedComponentEntropy, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_ConnectedComponen, NULL, __pyx_mstate_global->__pyx_n_u_max_info_atlases_cython_Connecte, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[5])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_16max_info_atlases_6cython_25ConnectedComponentEntropy_1__pyx_unpickle_ConnectedComponentEntropy, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_ConnectedComponen, NULL, __pyx_mstate_global->__pyx_n_u_max_info_atlases_cython_Connecte, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[6])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -9288,31 +9527,31 @@ static int __Pyx_InitCachedConstants(__pyx_mstatetype *__pyx_mstate) {
 static int __Pyx_InitConstants(__pyx_mstatetype *__pyx_mstate) {
   CYTHON_UNUSED_VAR(__pyx_mstate);
   {
-    const struct { const unsigned int length: 9; } index[] = {{1},{11},{14},{179},{2},{1},{8},{7},{6},{2},{24},{9},{39},{34},{22},{57},{14},{25},{43},{45},{39},{31},{35},{20},{6},{5},{18},{17},{18},{8},{5},{5},{5},{9},{13},{7},{8},{12},{1},{5},{13},{5},{15},{1},{8},{49},{5},{9},{10},{9},{7},{8},{7},{8},{2},{5},{4},{8},{3},{14},{12},{11},{10},{40},{14},{12},{10},{17},{13},{6},{6},{11},{4},{12},{10},{12},{19},{6},{6},{5},{8},{6},{12},{6},{1},{1},{5},{11},{351},{11},{149},{214},{59}};
-    #if (CYTHON_COMPRESS_STRINGS) == 2 /* compression: bz2 (1320 bytes) */
-const char* const cstring = "BZh91AY&SY?\342\322#\000\000\234\377\377\357\377\377\276\377\367\377\375\277\351\177\374\377\377\377\364@@@@@@@@@@@@@\000@\000P\004sj\265RJ\240\014\030J\210\"\236\211\346DOi=M\252<I\240\362z\200L\322m\t\350\203L@\364\324\032`4\214\3204z\231\252c\032\240\224Bb\000\021\251\350!\251\033j\2317\252\014\200\315@\000\000\000\000\000h\320i\341OS\364\220ji\204\"2\t?D\304\236\246\312\014\201\352i\240\006\200\000\006\200\000\000\000\000\320\007\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\0008\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\004\037\276\241v\363\001\312{\350\234A\307\333S\211\215\032\305\016N]\242s\2579\266R\305#\334D'\227\"H8\224\230EU\025Q\344DNr\026$i\214PUU\nLP4\t\367\020\003\276N\2001\006W\001:4\323\212EziiB/\017hSK\t\201\227\204\023bF\360\223D\221\025\"\221UUE&\221X\343\264\205\350\277\331K\276\317\267\241\021)X\267\020\212x:OR\270\220\342\247\306\017\222\215I\242o\200\345\221F\213\3437a\213\t\340\006W\221\217\021\346\300\014#t..\261\345K\316\205\376\264)\220\264s\253Sm\271R\301\305\224B\311J\312\314\325\031\201\204F\224\016\311\222\031T\336a\2218\373\023\303\324\347\351\210\256*\323\212\300\360\005@\333]\231\277 \305\241=\214\222\275U\"\223-\222\271\30420\361Z\375\316\242\006\357\214R{_\033u\3315\021\251\223\364s\240f\204T\271\261\274.\235}\003\315\357\277-A:q\027U5d\260\021_E\007\346\0228\301\361@^\2030\335\313~\324L\235\221\225\247h\247\370\271\003M\332\232\006\303\221\210\233\036\016W\362I\323w+\342\325\333\315$\262\030\261\327\340\"\244\306d4C\331F\212\201@'\020$\024\033\203\026y9\310R \030\250s\0341U\224\02560U\303+cB\371\\\277\215\305\360\300\254\363{;Bt\243\320\357j\364i\346\277I\202\246\344\272n\021\304\331\333\221o(i!\323\324\2335\354,\304\273\2302\244\017:|q\261\262\204d\214g6`\270\316\306\256W\000D\352\201\356\024\013vrV\210\016\273~\213\302\365P\201N\014\334a\036\002\315~`\271\225T0\334\273\252\300D\221\006V\221\352\025\344@\226\231\177C-u@\222}\261-\231\001Tc\201\3647\216\312\333#\346\2224\255\016\236\250\24072""\345\232:n\010\335\002\325&\247C-\232v<\036\250\342B\312x\366\006\254\311\305\206\203\003\244\263\223\034=SKNyQ\322\212\1773\255\001t\224\234\356%O\2616_\325\342\271\331\326\213\331BF\206$\200\303CER\023D\203\031{\264&\246\353\"\230\245%Q\034F\261\307[\240\333l\032\224\021\202`\260s<\005\260\226H\263\225\330\303g\252ap\022\021sAT\325\356\004M\200\315\002Z(\3120\032,P0d\250\n\273\261jA\\ \307\272\023=D;\000*-YoQ$\264\257\2738,O\361\003B$%@\275\216@\3229PM\300`\314\2057\320\262\342g\244\211\026\267#\322\0222\266\252\003\324p\242\210.8\t\206=\215\323Y\324\330\3171\311\014\233\314\274\256\353\014\325V\246M-\224'\031\341\261\004lJ\005.<\013\367\307\322\253\032\332\r1f\375\265s\276B\005E\257\013\224\265sk\210\370#\026\241\3651$\341Q\374\013\014\271\331h\354[\272!_@\312^Bc\252\255DV\310\310\2421\001\2142\266\346\245ar$\305C\236)S\304\2019R\010\372\020v\343\331\234\322\\\266f\234\210V\032\250\032\352\3633U\211\2759X\266\250jj7\006ji\326:L\314*\324*\017\033K\344\273\242\201\302\250\325$\\\332\202S^\002I\025\023\177E\251_\005\324\350\366\017\241>\257\205\025\024;G\333\257\326:\377\002\236\345\020\212\263\314\255\316\241e\034\037\373\220-\300\257e\316F\253\0269Z_\267d\226s\342T\240\362\323\216\221\267~\322\353\026\017\031q}\251\207\245\347\213NrW\356\023h9\221\362\224?\376\3227\217\314\262\310>b\372\375\341\033).\340(x\202\036C\262G\255sO\241N\271\263\320%F\2545J{\341\035\201\234\356\277E\377\2375\030zs\254\261\227\313\265y\037\013\276\372F)\241G\310\3534\330\271n\330\2263x'\306a8\205\nc?\032Y\365\361\336e5`\273\277\230\313\220\330\363]\253 \250T\034\302\2763\333\2079\250\371\234h\321\203W\254}\032\017`\363\365\r\321V\026\016\222$/k(\025\260A\357\006\244oy\227\tl\317\021\007\206\r\024,L\262Y\023\333\301\037\370\273\222)\302\204\201\377\026\221\030";
-    PyObject *data = __Pyx_DecompressString(cstring, 1320, 2);
+    const struct { const unsigned int length: 9; } index[] = {{1},{11},{14},{179},{2},{1},{8},{7},{6},{2},{24},{9},{39},{34},{22},{57},{14},{25},{43},{45},{39},{35},{31},{35},{20},{6},{5},{18},{17},{18},{8},{5},{5},{5},{9},{13},{7},{8},{9},{12},{1},{5},{13},{5},{15},{1},{8},{49},{5},{9},{10},{9},{7},{8},{7},{8},{2},{5},{4},{8},{3},{14},{12},{11},{10},{40},{14},{12},{10},{17},{13},{6},{6},{5},{11},{4},{12},{10},{12},{19},{6},{6},{5},{8},{6},{12},{6},{1},{1},{5},{11},{351},{60},{11},{149},{214},{59}};
+    #if (CYTHON_COMPRESS_STRINGS) == 2 /* compression: bz2 (1378 bytes) */
+const char* const cstring = "BZh91AY&SY3/\213\217\000\000\244\377\377\357\377\377\276\377\367\377\375\277\351\177\374\377\377\377\364@@@@@@@@@@@@@\000@\000P\004\274\355\035\n\035\025J\234\026\032\210\232\236\246C\332\200\231\014M2\0321\244h\323\021\2204\032\0004\323CA\240\323F\232i\203ML&\203T\010OM5=\030\020\2314\311\240=F\322d\001\204d\014\215\0314\000\321\240\302\r\r\001\211\201(\232h@@\004\304\247\351O\325<\220\365\036\211\243@\032\032\003@\032\000\000\000\031\000\3652d\t\024S\010S\323\320L\246\324\364i\250i\210h4\001\220h\000\000\000\000\000\000b\014C\200\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000M.;Pvo\300#\213\003\264-\024i~Y\243\010\221\203\r?\336\240\265^\251\251L\260\311\365\222*\323\266\244)*eD\233cjRp\rRk\nz\323\316\206\333Ecy\tM`i\2101\261Rc\023\223\240Y\0315e\206\002\343\006\t\316t\201\t\"c`\005\300\360\270_v\264%\206\035\202\205\247\204\222\t2A\003\316v\014\215\025\010\204kV$\\\263\273\366\225y\035o\366\242\342\235V\353\334Ty\221\375g\n\234\353\327F\204\316\232\255/\330n\327\273kl\031uFM\271\273y\206\323\303\034r'\n\376\374\320\313\351\313\202^W\215\365t\265j\323\2607\343\000\212\254[\203\246a\377\260%\372C\223>rN;A\211F>w\033m\366\275^\241G\335m\205\251\266;\344\234\23770\262\230\030\031\3077`\327j\240\017\n74\030`h\231CD\026\314,\270 =\322\007\275'\203\230\314w\007]V\010[\303\254CQ:)\221\251\224~\245\334\366\335\362\303S\212\226\024M\025\333\034$^\027\336\337aP\324\232\301\251\367@\2066\374\035\312|r\374\342\231\277\"\030S\252]\326\310\006\376M\314\211\310r\300G\006W\345\217\037;\206_\345*e\354\366\036\3078x\257\350\305\343[2\235\002\022r\327\014\002\242\202\304\300\310Ix\325\022*\305P\t-\357\010\220U\205\245\3559\252\347\314\324\264\231?\325Q\t4P %z\177\200q\r\266\227\301\333>\332O\002\244\220\261\257\021\004\030\032\273-2R\r\213\016q\234\t\311\314\3440\3511\366\0032L\363l\323\247\013T\024\2522f\257|\321$\356\035\034AU3\215\340\270d\305\337[D\023N\273\365\032\263\316k`\314\214F\000\365\353\254}\374\371\315\2724\346\330\253\032\014\270\343\007\036\n\242\276""\n\273D\236\347\020{;41V \252B!+[\227\016\006yV\364\271m\215\227\320A\267\2275t\331\214)\216f%+\273\\1Wd$Hcj\221!^\266\236``\272\264\256^.\031n\251P\277\304\315\245%\245\007F\302r\234\232\231V\203y]Q:Z!\212\315_\324\013\332\356\023^b\246\213\025DbS\331{\225\320\234!\222;\023\201\270\212&\224\270\276\204J`\"s\3676,#%\245&\231\326i(\003\341\216%^\345\323Q.\351\343\264B\242\211)\273\263\301\005Ylf\211\034kJ\2511\205\240\206xT!\276\314\361S:I\020\226\224\325%i\031\350\032xV\3551I`\243 \311\256\264DkD\235B\031!\021\r\210EDM\001\002\031K\262Z\254\225i5\\Pvl\262I\244\205\021b%e!\215!\342\\\025\314L\343\030\31232a\310\244\246\303\277\013E\026k\227o\300\246]\215PXC\240\246v\021#Qp\246C\235\227i+\325i\205\202\003\014\333q]\332\223\222.1H1\251\211w\271\224%;\224e\201,\220G\361\324\227\022\3176\250b#\211\034d\2126%\262\3212\250f\270\244\343$'J\002!\002\334l\305P\026R\250a\021\220\245\362\022e\205\342$\254KP}\023\206\243`cY\357XP0\007\005\243F\213\260\301]_\252P;\0140EF\3440D\336\031p\2727\2044JF\264\262Y\310\021\236\324Y#\273\200)\2317\005$\354X\367\254*6\226k^\3527\345^~\352i\257C\372\236\254\256\2315\246\235(\342\022h~!\211\365\202\300s\220\257`\276\263\330\3737\2516\240*\323j\200\26708\025\023\352\200u\200\261\340\2521\340\313o@V\016D\344':#\342\327\374\n8\371\245l\025@)\223\231\260UR\355\t\343\265\270P\201Q\006<\240\022\323*m\216\r\000F\022x\242\305\252o\340I\244&T\0059\255V\262\037*\003\003\005\372\265\363\231\275\212L\311.\3244?\251\313\230<\270\311\363(#\\Ft\202\375\263^\273t\024\321}<\037\231x*b\004\220\303\211-y\024\241XbY\267\377\230\304|\305\316\013\007\263&3\022\304\260\323-\230\217\220\213\306\314bQ$\255\236\013\347\375\315%\306\374c|\276\305\354\350\313\213\240\255Ij\330\360\306B\n28\302\021z\004\226*\316M\002RT\212\360\311\352z\227\033L\371\252\377\305\334\221N\024$\014\313\342\343\300";
+    PyObject *data = __Pyx_DecompressString(cstring, 1378, 2);
     if (unlikely(!data)) __PYX_ERR(0, 1, __pyx_L1_error)
     const char* const bytes = __Pyx_PyBytes_AsString(data);
     #if !CYTHON_ASSUME_SAFE_MACROS
     if (likely(bytes)); else { Py_DECREF(data); __PYX_ERR(0, 1, __pyx_L1_error) }
     #endif
-    #elif (CYTHON_COMPRESS_STRINGS) != 0 /* compression: zlib (1206 bytes) */
-const char* const cstring = "x\332\215S\317s\323F\024\216\007\003N\3436q\034\332i\201a\035B)\235`p0P\n\323\216I\002\355t\206\211\003\245\374\232Y6\322\332\026\221V\266v\025l\246\207\034}\334\243\216:\352\250\243\216>\372\250\243\216\376\023\362'\364\255\024g\030 \224\203WO\253\357\275\367\275\357}\276\362\310\326)2\230N\373h\032\032\032\345\350\247G\266\240Ht\210@\353\003\321\261\03128\322\251i\354P\207\010j\016\020\027\216\241\t\352(\020C[\233[W\353\277\324\021a:r\350\033\252\t\216\270\273\243\231\204s(g\267\320\216k\230\302`H\014\272\224W\321\237-4\260]\304(\325\221\260Q\027p\357'\210\016e\210S\241\002t\2310f\013\"\014\233aH7X\3732\322\r\007\232\030{Te? &\247\325U\364;\321u\014P\252\033\234\354\230\2242u\2665E\336vEJ\303v\231\016\363]Wy\006\317\020:s\255\356\240\2125\333\241U\313\005\236\304q\310\000\265\210af\374\014\253k;\342}\230k\021\321\371\010q\345\223}\270\243]\263H\037\033\254ec\"`F\312\257i\251\256\327\326m\306`\022\252\257\333P\201Q&6\231pl\350\323\035\364\357)\225Y\233\333\256\243\321\337\216\205\036_\003c\207\352\256Fq\326\r\343\317AAo\0162\177\t\230fO\274GL\227\036\017\263\250\323\376\277\317\230\230&\306[\203>\3746\300R\370\021\355\213m\332\"\016am\232.\202\360\001\323\014\273\n\302\203\274\006\243\\#\246\346\232\212\353!\023\315\204k\020\030\013\207ht\207h\273\030\353\252Z\366\320\225\355\250\336\246<\303\033\323\340p\204\226i\023q\253\216q\313e\032\344\340\366T\013l\030L}18>jo\010jq\330\242\300G<t\013c\213@\177\374\341\242\253\231\232\325ceHUxO\n\313\326]\023\0323X\210\246L\017C\201\375\341\013#\026U\344\030}\233\035\334xGY7\265%T\344\335l\030\336\265\273\030\203}\260\326\241\332.w\255\354\315\241\034\274\235\305\207\303\251PI\223E.\353\032\332.\364>\226k\206\333\023\352_\243\230\364\\bNY\035:\r\177\344\271\243\013\332\207\320\266\005\356\247\347\200\023\253\013uZ\016\355qj\266R\007\036\016\t\221\016\036H\371\036\371\022\177\302\243J\002\334O\317\301!JP\330\014v\273:\274\271\234\036\345d\342\364\007\357\250c\363\375\\\222\277\035\366\242S\021\211\363w\242\322\301\362\314lq""\2706\334\036:\262,\357K\315[\362^\006'\202\265`;p\302rx?\324\242\245\250\231\024\027\345\317^#>\1775h\006zX\211o\3745\256\2157\342\255\027\361\213\227\361\313W\007\247ff\317z+\036\365k~#)\3740\r\325}qx[^\224P\242,\353\262\3679\344\327q\361\234\327\200\376\271\24407\254\307\363\027\274\236_\0006\265\244\270 \363\361\322\212\337\360\233\223B\361\213p\252\342y\357\241\277\246R\346\200\304\262l\250\357\247e\317\373\312\257\250\360\244l\3127~n\362\311\333\214\373\035\271.\205\247\n\307\013\310\317\371\347\0032\231\306\347\202f\006J\373\316y\365\370\302ZX\231\024\346\207B\326\366\033\007\2133\263\013i\230;(\314\234\374f\370$.]\364\353\376\273p)|\002\252\276\032/\215\237\307O\225\204I\2768|(k\362\201\267\352\223$\177z\177o\370\217\334\204]4\223\302\242\254$\205\357do\002\207\210\317\256\006\017\303\233\321\211\250\036\365Go\3074~\3744-\361:~\335\216\333\035\225\333K\n\363\361\374\257\321JD\242\267\243\335\270\371,~\366|\362\301\335v\234\357\304\035\343\000\315\314~+\377\366~\204qJ\3310k\303\3072\247\266\265&\237z5o\303?\345\357\004\251\032w\243\345\350\301\2502\2721j\215\357\217\311\244P\222%yI\311\003\363\315\256\3707\000\010KP\320\025\277\006{\032n\3123\222\000\365\342<\370kQ\336\363\270\277\354\257\373NP\016\032\340$2Y\370\336+y\227<\341\337\nJ\301\245\240\027\236\010\353\241\0335\242\307\243\374\250\221,,\373\025(W:\003\312T\274\233@\262\354o\004'!U\003\021\233\323\364A\220\013JJ\367\336~n\222\0077\304\350z8\027\335M\007M\362\345\270\274\032\374\0216\302\246\222\347_y\333\003E\357F\265\370\036(\323\212[\355$?7\254\375\007YV.\273";
-    PyObject *data = __Pyx_DecompressString(cstring, 1206, 1);
+    #elif (CYTHON_COMPRESS_STRINGS) != 0 /* compression: zlib (1250 bytes) */
+const char* const cstring = "x\332\215S\317s\323F\024\216\007C\235\306m\3428\264\323\022\0069\204R:\301\340`\240\024\246\035\223\004\332\351\014\023'\220\362kf\331Hk[D^\331\332U\260\231\0368\372\270G\035u\324QG\035}\364q\217:\372O\310\237\320\267\222\235a\200P\016^=\257\276\367\336\367\276\367\351\312#\333 \232I\r\322\323\246\241\251\023\246\375\374\310\346D\343-\314\265\215>o\331T3\231f\020\313\334'\016\346\304\352k\214;\246\316\211\243@T\333\336\332\276Z\375\265\252ajh\016yMt\3164\346\356\353\026f\014\312\331\rm\3375-nR\215\367;\204\225\265\277\032Z\337v5J\210\241q[\353\000\356\375\004\336\"Tc\204\253@\273\214)\2659\346\246M\021\244\233\264yY3L\007\232\230\207De?\300\026#\3455\355\017l\030\010\240\3040\031\336\267\010\241\352l\352\212\274\355\362\204\206\355R\003\346\273\256\362L\226\"\014\352\266;\3752\322m\207\224\333.\360\304\216\203\373Z\003\233V\312\317lwl\207\277\017s\333\230\267>B\\\371d\037\346\350\327\332\270\207L\332\260\021\3460#a\327\364D\327k\0336\2450\t16l\250@\t\345[\224;6\364\351\364{\367\224\312\264\311l\327\321\311\357'BO\256\201\220C\014W'(\355\206\320\347\240\2407\003\231\277\004L\322':\304\226KN\2065\tG\216msv2\244M\234&\371\237\327\010[\026B\333\375\036\3746\301u\350\021\351\361\035\322\300\016\246M\222\354\n\263>\325M\273\014\273\201\r\230\2240\035[\272k\251q&du\013\256a\007\210;X'\373X?@\310P\325\322\207\241\234I\214&a)\336\234\006\223)\033\226\215\371\255*B\r\227\352\010\035\217\226\204\251n\3104\251\202\230\014\035\36309i3\3308G\307\204\2146Bm\014D\320\207\246(\247\312\227O\324#\221\343=M\332\266\341Z\320\230\302\362t\365\201\300t\360\251\300\033\212\333p\017O\362&=\230\371\226\320Nba\250\310:\351T\254cw\020\002\253!\275E\364\003\346\266\323\177\016a\360\035\244\361d8\025*\215\322\310\245\035S?\200\336'rMq\207\\}a\212I\327\305\326\224\325\304\225\350#\177\036_\220\036J\364E\275\344\354'Z3\334\356@\261\206C\272\214X\215\304\262\223I!2\300\021\t\351c#\243O\230Z\351\200z\311\331\237\2408\201\365 \267c\300?\227\221\343\234T\241^\377-ql\366.\023go\207\335\350L\204e\366NT8""Z\231\231\315\017\326\007;\003G\024\305}\241{K\336\213\340T\260\036\354\004NX\014\357\207z\264\024\325\343\374\242\370\305\253\311\363W\203z`\204%y\343\357Qe\264)\267\237\313\347/\344\213\227Ggff\317y\253\036\361+~-\316\3758\r\325}~p[\\\024P\242(\252\242\3739\34472\277\354\325\240\177&\316\315\r\252r\376\202\327\365s\300\246\022\347\027DV.\255\3725\277>\316\345\277\010\247*\236\367\036\372\353*e\016H\254\210\232z\377\225\350z_\373%\025\236\026u\361\332\317\214?y\233r\277#6\004\367Ta\271\240\371\031\377|\200\307\323x9\250\247\240\244\357\234W\225\027\326\303\32287?\340\242\362\256v\264<3{\023\024lD\265\350\361py\264'w\237\310'{G9\230t\260%\316\n\234V.\210\202\270\004\341M(YP\331]\310]\234\231]H\312d\000\177\372\333\301cY\270\350W\375\267\341R\370\0306\362r\2644z&\367\224\374q6?x(*\342\201\267\346\3438\373\325\273\303\301?b\013\366X\217s\213\242\024\347\276\027\3351\034\\\236[\013\036\2067\243SQ5\352\r\337\214\210\334\335KJ\274\222\257\232\262\331R\271\33587/\347\177\213V#\034\275\031\036\310\372S\371\364\331\370\203\273\035\231m\311\226y\244\315\314~'\236x?)\336\251\020\353\203]\221Q\233^\027{^\305\333\364\317\370\373A\242\344\335h%z0,\ro\014\033\243\373#<\316M\247\256(=V\375\033\000\204\005*\350\252_\201\035O\024\352\216\363\363\340\315Eq\317c\376\212\277\341;A1\250\201\013\361x\341\007\257\340]\362\270\177+(\004\227\202nx*\254\206.\210\275;\314\016k\361\302\212_\202r\205\263\240L)\021\267\350o\006\247!U\007\021\353\323\364~\220\t&\252g\306Yp\222\324\256\207s\321\335d\3208[\224\305\265\340\317\260\026\326\225<\377\212\333\036(z7\252\310{\240LC6\232qvnP\371\017;:Z\244";
+    PyObject *data = __Pyx_DecompressString(cstring, 1250, 1);
     if (unlikely(!data)) __PYX_ERR(0, 1, __pyx_L1_error)
     const char* const bytes = __Pyx_PyBytes_AsString(data);
     #if !CYTHON_ASSUME_SAFE_MACROS
     if (likely(bytes)); else { Py_DECREF(data); __PYX_ERR(0, 1, __pyx_L1_error) }
     #endif
-    #else /* compression: none (2070 bytes) */
-const char* const bytes = ")Node index Node indices (Note that Cython is deliberately stricter than PEP-484 and rejects subclasses of builtin types. If you need to pass subclasses then set the 'annotation_typing' directive to False., ?add_notedisableenablegc is out of bounds (0 to isenablednumpy._core.multiarray failed to importnumpy._core.umath failed to import) out of bounds (0 to src/max_info_atlases/cython/ConnectedComponentEntropy.pyx<stringsource>ConnectedComponentEntropyConnectedComponentEntropy.__reduce_cython__ConnectedComponentEntropy.__setstate_cython__ConnectedComponentEntropy.entropy_valueConnectedComponentEntropy.mergeConnectedComponentEntropy.merge_all__Pyx_PyDict_NextRefarangearrayasyncio.coroutinescalculate_entropycline_in_traceback__dict___dictdtypeedgesentropiesentropy_valuefloat64__func____getstate__iint64_is_coroutineitemslast_calculatedm__main__max_info_atlases.cython.ConnectedComponentEntropymergemerge_all__module__n_sectionn_total__name____new__new_sizenpnumpyonesp_valuespop__pyx_checksum__pyx_result__pyx_state__pyx_type__pyx_unpickle_ConnectedComponentEntropy__pyx_vtable____qualname____reduce____reduce_cython____reduce_ex__root_xroot_ysample_freqself__set_name__setdefault__setstate____setstate_cython__size_xsize_ystate__test__updateuse_setstatevaluesxyzeros\200\001\330\0047\260q\270\006\270a\320\0049\270\021\360\"\000\t\014\2102\210R\210r\220\023\220B\220c\230\024\230[\250\003\2502\250R\250r\260\023\260B\260c\270\024\270Q\330\014\022\220*\230A\320\035-\250Q\250d\260!\3203K\3101\310D\320PZ\320Z[\320[\\\360\006\000\t\033\230$\230e\2401\240A\330\010\032\230$\230e\2401\240A\360\006\000\t\014\2107\220#\220Q\330\014\023\2204\220q\360\006\000\t\033\230$\230e\2401\240A\330\010\032\230$\230e\2401\240A\360\006\000\t\r\320\014\034\230A\230[\250\001\330\010\013\2104\320\017\037\230q\240\010\250\003\2501\330\014\020\220\004\320\024$\240A\240Q\340\010\014\320\014\034\230A\230[\250\001\330\010\013\2104\320\017\037\230q\240\010\250\003\2501\330\014\020\220\004\320\024$\240A\240Q\360""\006\000\t\035\230G\2402\240Q\340\010\013\2107\220\"\220A\330\014\020\220\007\220q\230\n\240!\330\014\020\220\005\220Q\220j\240\001\340\014\020\220\007\220q\230\n\240!\330\014\020\220\005\220Q\220j\240\001\360\006\000\t\014\2109\220C\220t\2301\330\014\020\320\020 \240\001\240\035\250a\340\014\020\320\020 \240\001\240\034\250Q\360\006\000\t\014\2101\330\014\020\220\013\2304\320\0372\260!\340\010\017\210t\2201\200A\360\022\000\t\020\210t\2201\200\001\360\010\000\005\016\210T\320\021#\2404\240z\260\024\260T\270\024\270\\\310\024\310Y\320VZ\320Z[\330\004\014\210G\2201\220F\230,\240a\330\004\007\200v\210W\220E\230\024\230Q\330\010\022\220!\330\010\027\220q\340\010\027\220t\320\033,\250G\2605\270\003\2704\270x\300w\310e\320SV\320VZ\320Z`\320`g\320gh\330\004\007\200q\330\010\017\320\017:\270$\270a\270w\300k\320QX\320XY\340\010\017\320\017:\270$\270a\270w\300k\320QR\320\004h\320hi\360 \000\t\026\220U\230&\240\001\240\021\360\006\000\t\014\2102\210S\220\001\330\014\023\2202\220V\2301\230D\240\006\240b\250\001\360\006\000\t;\270\"\270F\300!\3003\300f\310B\310a\340\010\021\220\021\220%\220t\2301\360\010\000\t$\2403\240b\250\003\2501\360\006\000\t$\2401\340\010\014\210E\220\025\220a\220q\340\014\017\210r\220\022\220<\230s\240\"\240C\240r\250\023\250A\250Q\250a\340\020\031\230\021\230%\230t\2406\250\021\250%\250q\260\003\2604\260u\270A\270S\300\004\300A\330\020\"\240!\360\006\000\021\025\220F\230!\2305\240\001\240\023\240D\250\005\250Q\250c\260\024\260Q\340\020\031\230\021\230%\230y\250\001\250\021\340\010\017\210q\200\001\340\004\037\230q\320 0\260\013\270;\300k\320QR\330\004\023\320\023,\250H\260A\260Q\330\004\007\200|\2207\230!\330\010;\2701\320<X\320Xf\320fg\330\004\013\2101";
+    #else /* compression: none (2179 bytes) */
+const char* const bytes = ")Node index Node indices (Note that Cython is deliberately stricter than PEP-484 and rejects subclasses of builtin types. If you need to pass subclasses then set the 'annotation_typing' directive to False., ?add_notedisableenablegc is out of bounds (0 to isenablednumpy._core.multiarray failed to importnumpy._core.umath failed to import) out of bounds (0 to src/max_info_atlases/cython/ConnectedComponentEntropy.pyx<stringsource>ConnectedComponentEntropyConnectedComponentEntropy.__reduce_cython__ConnectedComponentEntropy.__setstate_cython__ConnectedComponentEntropy.entropy_valueConnectedComponentEntropy.get_rootsConnectedComponentEntropy.mergeConnectedComponentEntropy.merge_all__Pyx_PyDict_NextRefarangearrayasyncio.coroutinescalculate_entropycline_in_traceback__dict___dictdtypeedgesentropiesentropy_valuefloat64__func__get_roots__getstate__iint64_is_coroutineitemslast_calculatedm__main__max_info_atlases.cython.ConnectedComponentEntropymergemerge_all__module__n_sectionn_total__name____new__new_sizenpnumpyonesp_valuespop__pyx_checksum__pyx_result__pyx_state__pyx_type__pyx_unpickle_ConnectedComponentEntropy__pyx_vtable____qualname____reduce____reduce_cython____reduce_ex__root_xroot_yrootssample_freqself__set_name__setdefault__setstate____setstate_cython__size_xsize_ystate__test__updateuse_setstatevaluesxyzeros\200\001\330\0047\260q\270\006\270a\320\0049\270\021\360\"\000\t\014\2102\210R\210r\220\023\220B\220c\230\024\230[\250\003\2502\250R\250r\260\023\260B\260c\270\024\270Q\330\014\022\220*\230A\320\035-\250Q\250d\260!\3203K\3101\310D\320PZ\320Z[\320[\\\360\006\000\t\033\230$\230e\2401\240A\330\010\032\230$\230e\2401\240A\360\006\000\t\014\2107\220#\220Q\330\014\023\2204\220q\360\006\000\t\033\230$\230e\2401\240A\330\010\032\230$\230e\2401\240A\360\006\000\t\r\320\014\034\230A\230[\250\001\330\010\013\2104\320\017\037\230q\240\010\250\003\2501\330\014\020\220\004\320\024$\240A\240Q\340\010\014\320\014\034\230A\230[\250\001\330\010\013\2104\320\017\037\230q\240\010\250""\003\2501\330\014\020\220\004\320\024$\240A\240Q\360\006\000\t\035\230G\2402\240Q\340\010\013\2107\220\"\220A\330\014\020\220\007\220q\230\n\240!\330\014\020\220\005\220Q\220j\240\001\340\014\020\220\007\220q\230\n\240!\330\014\020\220\005\220Q\220j\240\001\360\006\000\t\014\2109\220C\220t\2301\330\014\020\320\020 \240\001\240\035\250a\340\014\020\320\020 \240\001\240\034\250Q\360\006\000\t\014\2101\330\014\020\220\013\2304\320\0372\260!\340\010\017\210t\2201\200A\360\034\000\t5\260B\260f\270A\270T\300\034\310V\320SU\320UV\360\010\000\t\r\210E\220\025\220a\220t\2301\330\014\021\220\021\220%\220t\2305\240\001\240\021\340\010\017\210q\200A\360\022\000\t\020\210t\2201\200\001\360\010\000\005\016\210T\320\021#\2404\240z\260\024\260T\270\024\270\\\310\024\310Y\320VZ\320Z[\330\004\014\210G\2201\220F\230,\240a\330\004\007\200v\210W\220E\230\024\230Q\330\010\022\220!\330\010\027\220q\340\010\027\220t\320\033,\250G\2605\270\003\2704\270x\300w\310e\320SV\320VZ\320Z`\320`g\320gh\330\004\007\200q\330\010\017\320\017:\270$\270a\270w\300k\320QX\320XY\340\010\017\320\017:\270$\270a\270w\300k\320QR\320\004h\320hi\360 \000\t\026\220U\230&\240\001\240\021\360\006\000\t\014\2102\210S\220\001\330\014\023\2202\220V\2301\230D\240\006\240b\250\001\360\006\000\t;\270\"\270F\300!\3003\300f\310B\310a\340\010\021\220\021\220%\220t\2301\360\010\000\t$\2403\240b\250\003\2501\360\006\000\t$\2401\340\010\014\210E\220\025\220a\220q\340\014\017\210r\220\022\220<\230s\240\"\240C\240r\250\023\250A\250Q\250a\340\020\031\230\021\230%\230t\2406\250\021\250%\250q\260\003\2604\260u\270A\270S\300\004\300A\330\020\"\240!\360\006\000\021\025\220F\230!\2305\240\001\240\023\240D\250\005\250Q\250c\260\024\260Q\340\020\031\230\021\230%\230y\250\001\250\021\340\010\017\210q\200\001\340\004\037\230q\320 0\260\013\270;\300k\320QR\330\004\023\320\023,\250H\260A\260Q\330\004\007\200|\2207\230!\330\010;\2701\320<X\320Xf\320fg\330\004\013\2101";
     PyObject *data = NULL;
     CYTHON_UNUSED_VAR(__Pyx_DecompressString);
     #endif
     PyObject **stringtab = __pyx_mstate->__pyx_string_tab;
     Py_ssize_t pos = 0;
-    for (int i = 0; i < 87; i++) {
+    for (int i = 0; i < 90; i++) {
       Py_ssize_t bytes_length = index[i].length;
       PyObject *string = PyUnicode_DecodeUTF8(bytes + pos, bytes_length, NULL);
       if (likely(string) && i >= 17) PyUnicode_InternInPlace(&string);
@@ -9323,7 +9562,7 @@ const char* const bytes = ")Node index Node indices (Note that Cython is deliber
       stringtab[i] = string;
       pos += bytes_length;
     }
-    for (int i = 87; i < 93; i++) {
+    for (int i = 90; i < 97; i++) {
       Py_ssize_t bytes_length = index[i].length;
       PyObject *string = PyBytes_FromStringAndSize(bytes + pos, bytes_length);
       stringtab[i] = string;
@@ -9334,15 +9573,15 @@ const char* const bytes = ")Node index Node indices (Note that Cython is deliber
       }
     }
     Py_XDECREF(data);
-    for (Py_ssize_t i = 0; i < 93; i++) {
+    for (Py_ssize_t i = 0; i < 97; i++) {
       if (unlikely(PyObject_Hash(stringtab[i]) == -1)) {
         __PYX_ERR(0, 1, __pyx_L1_error)
       }
     }
     #if CYTHON_IMMORTAL_CONSTANTS
     {
-      PyObject **table = stringtab + 87;
-      for (Py_ssize_t i=0; i<6; ++i) {
+      PyObject **table = stringtab + 90;
+      for (Py_ssize_t i=0; i<7; ++i) {
         #if CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
         #if PY_VERSION_HEX < 0x030E0000
         if (_Py_IsOwnedByCurrentThread(table[i]) && Py_REFCNT(table[i]) == 1)
@@ -9398,7 +9637,7 @@ typedef struct {
     unsigned int num_kwonly_args : 1;
     unsigned int nlocals : 4;
     unsigned int flags : 10;
-    unsigned int first_line : 8;
+    unsigned int first_line : 9;
 } __Pyx_PyCode_New_function_description;
 /* NewCodeObj.proto */
 static PyObject* __Pyx_PyCode_New(
@@ -9430,19 +9669,24 @@ static int __Pyx_CreateCodeObjects(__pyx_mstatetype *__pyx_mstate) {
     __pyx_mstate_global->__pyx_codeobj_tab[2] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_max_info_atlases_cython_Conn, __pyx_mstate->__pyx_n_u_merge_all, __pyx_mstate->__pyx_kp_b_iso88591_hhi_U_2S_2V1D_b_F_3fBa_t1_3b_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[2])) goto bad;
   }
   {
+    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 3, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 290};
+    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_roots, __pyx_mstate->__pyx_n_u_i};
+    __pyx_mstate_global->__pyx_codeobj_tab[3] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_max_info_atlases_cython_Conn, __pyx_mstate->__pyx_n_u_get_roots, __pyx_mstate->__pyx_kp_b_iso88591_A_5BfAT_VSUUV_E_at1_t5_q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[3])) goto bad;
+  }
+  {
     const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 4, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 1};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_state, __pyx_mstate->__pyx_n_u_dict_2, __pyx_mstate->__pyx_n_u_use_setstate};
-    __pyx_mstate_global->__pyx_codeobj_tab[3] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_reduce_cython, __pyx_mstate->__pyx_kp_b_iso88591_T_4z_T_YVZZ_G1F_a_vWE_Q_q_t_G5, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[3])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[4] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_reduce_cython, __pyx_mstate->__pyx_kp_b_iso88591_T_4z_T_YVZZ_G1F_a_vWE_Q_q_t_G5, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[4])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {2, 0, 0, 2, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 16};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_pyx_state};
-    __pyx_mstate_global->__pyx_codeobj_tab[4] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_setstate_cython, __pyx_mstate->__pyx_kp_b_iso88591_7q_a, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[4])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[5] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_setstate_cython, __pyx_mstate->__pyx_kp_b_iso88591_7q_a, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[5])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {3, 0, 0, 4, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 4};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_pyx_type, __pyx_mstate->__pyx_n_u_pyx_checksum, __pyx_mstate->__pyx_n_u_pyx_state, __pyx_mstate->__pyx_n_u_pyx_result};
-    __pyx_mstate_global->__pyx_codeobj_tab[5] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_ConnectedComponen, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_HAQ_7_1_XXffg_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[5])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[6] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_ConnectedComponen, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_HAQ_7_1_XXffg_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[6])) goto bad;
   }
   Py_DECREF(tuple_dedup_map);
   return 0;
