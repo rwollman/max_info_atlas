@@ -266,26 +266,24 @@ class GraphPercolation:
         uf = ConnectedComponentEntropy(self.N)
         ent = np.full(len(self.pbond_vec) - 1, np.nan)
         
-        # --- 1. EDGE DISCOVERY ---
-        if permute:
-            ELP = self._generate_monte_carlo_permuted_edges()
+        # USE THE EXACT SAME PIPELINE FOR BOTH REAL AND PERMUTED
+        ELP_local = self.calc_ELKexp(permute=permute)
+        ELP_macro = self._generate_macroscopic_edges(ELP_local, permute=permute)
+        
+        if len(ELP_macro) > 0:
+            ELP = np.vstack([ELP_local, ELP_macro])
         else:
-            ELP_local = self.calc_ELKexp(permute=False)
-            ELP_macro = self._generate_macroscopic_edges(ELP_local)
+            ELP = ELP_local
             
-            if len(ELP_macro) > 0:
-                ELP = np.vstack([ELP_local, ELP_macro])
-            else:
-                ELP = ELP_local
-
-            # Cache this to use for the normalization denominator!
+        # Cache the REAL edges for the H_z_min denominator calculation
+        if not permute:
             self.ELP_real = ELP
                 
         # Sort combined edges by probability
         if len(ELP) > 0:
             ELP = ELP[np.argsort(ELP[:, 2])]
             
-        # --- 2. THE SWEEP (Identical to your original logic) ---
+        # --- THE SWEEP ---
         for i in range(len(self.pbond_vec) - 1):
             ix_to_merge = np.logical_and(
                 ELP[:, 2] > self.pbond_vec[i],
@@ -511,24 +509,27 @@ class GraphPercolation:
             return score, c, hz_min
         return score
 
-    def _generate_macroscopic_edges(self, ELP_local: np.ndarray) -> np.ndarray:
-        from scipy.spatial.distance import pdist, squareform
+    def _generate_macroscopic_edges(self, ELP_local: np.ndarray, permute: bool = False) -> np.ndarray:
+        from scipy.spatial.distance import cdist
         
         # 1. Temporary Union-Find to discover the local zones
         uf_temp = ConnectedComponentEntropy(self.N)
         if len(ELP_local) > 0:
-            uf_temp.merge_all(ELP_local[:, :2].astype(int), calculate_entropy=False)
+            uf_temp.merge_all(ELP_local[:, :2].astype(int))
             
-        # 2. Extract zones and compute their centroids
+        # 2. Extract ALL zones and compute their centroids
         roots = uf_temp.get_roots()
         unique_roots, root_inv, zone_sizes = np.unique(roots, return_inverse=True, return_counts=True)
         
-        # Blazing fast O(N) centroid calculation
+        # Blazing fast O(N) centroid calculation for all zones
         sum_x = np.bincount(root_inv, weights=self.XY[:, 0])
         sum_y = np.bincount(root_inv, weights=self.XY[:, 1])
-        centroids = np.column_stack((sum_x / zone_sizes, sum_y / zone_sizes))
+        all_centroids = np.column_stack((sum_x / zone_sizes, sum_y / zone_sizes))
+        Z_total = len(all_centroids)
         
-        zone_types = self.type_vec[unique_roots]
+        tvec = self.type_vec_perm if permute else self.type_vec
+        zone_types = tvec[unique_roots]
+        
         macroscopic_edges = []
         
         # 3. All-vs-All macroscopic connections within each cell type
@@ -538,65 +539,55 @@ class GraphPercolation:
             n_type_zones = len(type_zone_idx)
             
             if n_type_zones < 2:
-                continue # Only one zone for this type, nothing to connect
+                continue 
                 
-            # Global fraction of this cell type
             f = zone_sizes[type_zone_idx].sum() / self.N
-            
-            t_centroids = centroids[type_zone_idx]
-            t_sizes = zone_sizes[type_zone_idx]
+            t_centroids = all_centroids[type_zone_idx]
             t_roots = unique_roots[type_zone_idx]
+            source_sizes = zone_sizes[type_zone_idx]
             
-            # Physical distances between zones (super fast because Z << N)
-            dist_matrix = squareform(pdist(t_centroids))
+            # Pre-allocate the complete rank matrix for this cell type
+            k_matrix = np.zeros((n_type_zones, n_type_zones), dtype=np.float64)
             
-            # Convert macroscopic distance back to information rank (k)
-            for i in range(n_type_zones):
-                for j in range(i + 1, n_type_zones):
-                    d_ab = dist_matrix[i, j]
-                    
-                    # k_rank is the number of same-type cells closer to 'i' than 'j' is
-                    closer_mask = dist_matrix[i, :] <= d_ab
-                    k_rank = np.sum(t_sizes[closer_mask]) - t_sizes[i] 
-                    k_rank = max(1, k_rank) # Ensure minimum rank of 1
-                    
-                    p_bond = 1.0 - np.exp(-k_rank * f)
-                    macroscopic_edges.append([t_roots[i], t_roots[j], p_bond])
-                    
+            # BATCHED VECTORIZATION: Process a few thousand zones at a time 
+            # This keeps the RAM footprint under 4GB even for massive Z_total
+            batch_size = 2000 
+            for start_i in range(0, n_type_zones, batch_size):
+                end_i = min(start_i + batch_size, n_type_zones)
+                
+                # Distance from this batch of zones to ALL zones in the tissue
+                D_batch = cdist(t_centroids[start_i:end_i], all_centroids)
+                
+                # Sort distances to establish relative physical rank
+                sort_idx = np.argsort(D_batch, axis=1) 
+                
+                # Cumulative sum of zone sizes gives the absolute cell count (k-rank)
+                cum_ranks = np.cumsum(zone_sizes[sort_idx], axis=1) 
+                
+                # Find exactly where our target same-type zones landed in the sorted order
+                rank_idx = np.empty_like(sort_idx)
+                np.put_along_axis(rank_idx, sort_idx, np.arange(Z_total)[None, :], axis=1)
+                
+                # Extract the cumulative cell count exactly at the target zones
+                target_cum_ranks = np.take_along_axis(cum_ranks, rank_idx[:, type_zone_idx], axis=1)
+                
+                # Subtract the source zone's own size to get strict distance
+                k_matrix[start_i:end_i, :] = target_cum_ranks - source_sizes[start_i:end_i, None]
+
+            # Enforce physical symmetry (take the most optimistic local connection)
+            k_sym = np.minimum(k_matrix, k_matrix.T)
+            k_sym = np.maximum(1, k_sym) 
+            
+            # Vectorized bond probability calculation
+            p_matrix = 1.0 - np.exp(-k_sym * f)
+            
+            # Extract upper triangle indices (unique undirected edges)
+            i_idx, j_idx = np.triu_indices(n_type_zones, k=1)
+            
+            # Instantly stack the millions of edges into the output format
+            edges = np.column_stack((t_roots[i_idx], t_roots[j_idx], p_matrix[i_idx, j_idx]))
+            macroscopic_edges.append(edges)
+            
         if len(macroscopic_edges) > 0:
-            return np.array(macroscopic_edges, dtype=np.float64)
-        return np.empty((0, 3), dtype=np.float64)
-    
-    def _generate_monte_carlo_permuted_edges(self, max_m: int = 10) -> np.ndarray:
-        """
-        Analytically simulate the K -> infinity permuted edge list 
-        using the Negative Binomial distribution, bypassing spatial search.
-        """
-        edges = []
-        tvec = self.type_vec_perm
-        unique_types, type_counts = np.unique(tvec, return_counts=True)
-        
-        for t, n_t in zip(unique_types, type_counts):
-            if n_t < 2:
-                continue
-                
-            f = n_t / self.N
-            t_nodes = np.where(tvec == t)[0]
-            
-            # For each cell, simulate finding 'm' same-type neighbors
-            for m in range(1, max_m + 1):
-                # Negative Binomial models failures (other types) before m successes
-                failures = np.random.negative_binomial(m, f, size=n_t)
-                k_ranks = failures + m
-                
-                p_bonds = 1.0 - np.exp(-k_ranks * f)
-                
-                # Assign a random destination node of the same type
-                dst_nodes = np.random.choice(t_nodes, size=n_t)
-                
-                m_edges = np.column_stack((t_nodes, dst_nodes, p_bonds))
-                edges.append(m_edges)
-                
-        if len(edges) > 0:
-            return np.vstack(edges)
+            return np.vstack(macroscopic_edges)
         return np.empty((0, 3), dtype=np.float64)
