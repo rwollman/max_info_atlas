@@ -286,3 +286,26 @@ cdef class ConnectedComponentEntropy:
                 entropies[i] = entropies[last_calculated]
         
         return entropies
+    
+    def get_roots(self):
+        """
+        Force path compression for all nodes and return the root ID for each cell.
+        
+        This extracts the current condensed state of the map (the "zones"), 
+        allowing the Python layer to identify super-nodes for phase 2 macroscopic 
+        percolation without breaking the C-level state.
+        
+        Returns:
+        --------
+        np.ndarray
+            1D array of length n_section containing the root ID for each node.
+        """
+        # Allocate the output array with the specific C-type
+        cdef np.ndarray[np.int64_t, ndim=1] roots = np.zeros(self.n_section, dtype=np.int64)
+        cdef int i
+        
+        # Iterate through all nodes, forcing path compression via find()
+        for i in range(self.n_section):
+            roots[i] = self.find(i)
+            
+        return roots

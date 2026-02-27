@@ -262,116 +262,49 @@ class GraphPercolation:
 
         return np.vstack(blocks_mod).astype(np.float64)
 
-    # This is an old implementaion (as of Feb 2026) that I think has an error in it
-    # with how blocks per k are seperated. 
-    # def calc_ELKexp(self, permute: bool = False) -> np.ndarray:
-    #     """
-    #     Calculate probability-weighted edge list based on type vector.
-        
-    #     Args:
-    #         permute: Whether to use permuted type vector
-            
-    #     Returns:
-    #         Edge list with probabilities [source, target, probability]
-    #     """
-    #     if self.ELKfull is None:
-    #         raise ValueError("Edge list not provided, call percolation with edge_list_manager")
-        
-    #     # Use permuted or original type vector
-    #     tvec = self.type_vec_perm if permute else self.type_vec
-        
-    #     # Extract types for each edge
-    #     type_left = tvec[self.ELKfull[:, 0].astype(int)]
-    #     type_right = tvec[self.ELKfull[:, 1].astype(int)]
-        
-    #     # Calculate type fractions
-    #     _, ix_inv, type_counts = np.unique(tvec, return_inverse=True, return_counts=True)
-    #     type_frac = type_counts[ix_inv] / len(tvec)
-        
-    #     # Filter for same-type edges and get their fractions
-    #     same_type_mask = (type_left == type_right)
-    #     edge_fractions = type_frac[self.ELKfull[:, 0].astype(int)][same_type_mask]
-        
-    #     # Create initial ELKexp with edge data and type fractions
-    #     ELKexp = np.hstack((self.ELKfull[same_type_mask, :], edge_fractions[:, np.newaxis]))
-        
-    #     ELKexp = ELKexp[np.argsort(ELKexp[:, 2])]
-
-    #     # Split into blocks by k value
-    #     blocks = np.split(ELKexp, np.where(np.diff(self.ELKfull[:, 2]))[0] + 1)
-    #     blocks_mod = []
-        
-    #     # Process each block (edges with same k)
-    #     for block in blocks:
-    #         if block.shape[0] == 0:
-    #             continue
-            
-    #         # CRITICAL: Shuffle edges within block (randomizes order for same k)
-    #         np.random.shuffle(block)
-            
-    #         # Create continuous k values within block
-    #         k_cont = block[:, 2] + np.arange(block.shape[0]) / block.shape[0] - 1
-            
-    #         # Calculate bond probabilities
-    #         pbond = 1 - np.exp(-k_cont * block[:, 3])
-            
-    #         # Sort by probability
-    #         ordr = np.argsort(pbond)
-            
-    #         # Add to results (only the columns we need)
-    #         blocks_mod.append(np.hstack((block[ordr, :2], pbond[ordr, np.newaxis])))
-        
-    #     # Combine results
-    #     if not blocks_mod:
-    #         return np.empty((0, 3), dtype=np.float64)
-        
-    #     return np.concatenate(blocks_mod)
-
-
-
     def bond_percolation(self, permute: bool = False) -> np.ndarray:
-        """
-        Perform bond percolation analysis using interval-based approach.
-        
-        Args:
-            permute: Whether to use permuted type vector
-            
-        Returns:
-            Entropy values for each pbond value
-        """
-        # Get the edges of same type with weights
-        ELP = self.calc_ELKexp(permute=permute)
-        
-        # Create a union find object
         uf = ConnectedComponentEntropy(self.N)
-        
-        # Initialize entropy array
         ent = np.full(len(self.pbond_vec) - 1, np.nan)
         
-        # Loop through probability intervals
+        # --- 1. EDGE DISCOVERY ---
+        if permute:
+            ELP = self._generate_monte_carlo_permuted_edges()
+        else:
+            ELP_local = self.calc_ELKexp(permute=False)
+            ELP_macro = self._generate_macroscopic_edges(ELP_local)
+            
+            if len(ELP_macro) > 0:
+                ELP = np.vstack([ELP_local, ELP_macro])
+            else:
+                ELP = ELP_local
+
+            # Cache this to use for the normalization denominator!
+            self.ELP_real = ELP
+                
+        # Sort combined edges by probability
+        if len(ELP) > 0:
+            ELP = ELP[np.argsort(ELP[:, 2])]
+            
+        # --- 2. THE SWEEP (Identical to your original logic) ---
         for i in range(len(self.pbond_vec) - 1):
-            # Find edges with probabilities in the current interval
             ix_to_merge = np.logical_and(
                 ELP[:, 2] > self.pbond_vec[i],
                 ELP[:, 2] <= self.pbond_vec[i + 1]
             )
             
             if not ix_to_merge.any():
-                # No edges in this interval
                 if i > 0:
-                    ent[i] = ent[i - 1]  # Use previous entropy
+                    ent[i] = ent[i - 1]
                 else:
-                    ent[i] = np.log2(self.N)  # Use initial entropy
+                    ent[i] = np.log2(self.N)
             else:
-                # Merge edges in this interval and get final entropy
                 ent[i] = uf.merge_all(ELP[ix_to_merge, :2].astype(int))[-1]
-        
-        # Update class attributes
+                
         if permute:
             self.ent_perm = ent
         else:
             self.ent_real = ent
-        
+            
         return ent
 
     def percolation(self, edge_list_manager: EdgeListManager = None, 
@@ -402,7 +335,7 @@ class GraphPercolation:
         # Then do the permuted entropy calculation
         self.bond_percolation(permute=True)
         # Compute and store the lower bound curve
-        self.hz_min = self._hz_min_curve_from_perm_edges()
+        self.hz_min = self._hz_min_curve_from_real_edges()
 
     def raw_score(self) -> float:
         """
@@ -465,63 +398,52 @@ class GraphPercolation:
         self.n_types = len(np.unique(self.type_vec))
         self.N = len(self.type_vec)
 
-    def _hz_min_curve_from_perm_edges(self) -> np.ndarray:
+    def _hz_min_curve_from_real_edges(self) -> np.ndarray:
         """
         Compute H_min(P) using a graph-theory lower bound on component count,
-        based on AVAILABLE same-type edges under the PERMUTED labeling.
-
-        Returns:
-            hz_min: array aligned to ent_real/ent_perm (len = len(self.pbond_vec)-1)
+        based on ALL AVAILABLE same-type edges (local + macroscopic) under the REAL labeling.
         """
-        # Build permuted same-type edge list with pbond values
-        ELP = self.calc_ELKexp(permute=True)  # columns: src, dst, pbond
+        # 1. Retrieve the combined $K \to \infty$ real edge list
+        if not hasattr(self, 'ELP_real') or self.ELP_real is None:
+            raise ValueError("Run bond_percolation(permute=False) first to generate real edges.")
+            
+        ELP = self.ELP_real
         N = self.N
 
-        # ent arrays have length len(self.pbond_vec)-1 (after pbond_vec shortened)
         n_bins = len(self.pbond_vec) - 1
         hz_min = np.zeros(n_bins, dtype=np.float64)
 
-        # Permuted type vector and counts
-        tvec = self.type_vec_perm
+        # 2. Use REAL type vector and counts
+        tvec = self.type_vec
         unq, inv, counts = np.unique(tvec, return_inverse=True, return_counts=True)
         T = len(unq)
-        n_t = counts.astype(np.int64)  # per-type node counts
-
-        # Map node index -> type index in [0..T-1]
-        # inv is already aligned to node order
+        n_t = counts.astype(np.int64)  
         type_idx = inv
 
-        # Sort ELP by pbond ascending so we can sweep thresholds
+        # Sort ELP by pbond ascending
         if ELP.shape[0] > 0:
             order = np.argsort(ELP[:, 2])
             ELP = ELP[order]
 
-        # Cumulative available edge counts per type
         E_t = np.zeros(T, dtype=np.int64)
-
-        # Pointer into ELP as we sweep pbond intervals
         j = 0
         m = ELP.shape[0]
 
-        # Precompute constant term for singleton contribution: -(1/N)log2(1/N)
-        # but careful: if N==0 (won't happen), avoid
         sing_term = 0.0
         if N > 0:
             p1 = 1.0 / N
             sing_term = -p1 * np.log2(p1)
 
-        # Sweep over pbond intervals; state after bin i includes edges with
-        # pbond in (pbond_vec[i], pbond_vec[i+1]] plus all previous bins.
+        # 3. Sweep and count edges
         for i in range(n_bins):
             lo = self.pbond_vec[i]
             hi = self.pbond_vec[i + 1]
 
-            # Add edges with pbond in (lo, hi]
             while j < m and ELP[j, 2] <= hi:
                 if ELP[j, 2] > lo:
                     src = int(ELP[j, 0])
-                    # Edge is same-type by construction, so type determined by src
-                    t = type_idx[src]
+                    # Because macroscopic edges use root IDs, they correctly map back to the root's cell type
+                    t = type_idx[src] 
                     E_t[t] += 1
                 j += 1
 
@@ -529,24 +451,19 @@ class GraphPercolation:
             K_t = n_t - E_t
             K_t[K_t < 1] = 1
 
-            # Minimum entropy given K_t components within type t:
-            # one big component of size a = n_t - K_t + 1, plus (K_t - 1) singletons
-            a = n_t - K_t + 1  # size of giant component per type
-            # Compute H_min as sum over types of component entropies with probabilities sized/N
+            a = n_t - K_t + 1  
             H = 0.0
+            
             for tt in range(T):
-                # giant component probability
                 pa = a[tt] / float(N)
                 if pa > 0:
                     H += -pa * np.log2(pa)
-                # singleton components contribution: (K_t-1) * [-(1/N)log2(1/N)]
                 if K_t[tt] > 1:
                     H += (K_t[tt] - 1) * sing_term
 
             hz_min[i] = H
 
         return hz_min
-
     def normalized_score(self, return_curve: bool = False):
         """
         Normalized 0–1 coherence score.
@@ -564,7 +481,7 @@ class GraphPercolation:
         if self.ent_real is None or self.ent_perm is None:
             raise ValueError("Run percolation() first to compute ent_real and ent_perm.")
 
-        hz_min = self.hz_min if self.hz_min is not None else self._hz_min_curve_from_perm_edges()
+        hz_min = self.hz_min if self.hz_min is not None else self._hz_min_curve_from_real_edges()
 
         # Align lengths
         L = min(len(self.ent_real), len(self.ent_perm), len(hz_min), len(self.pbond_vec) - 1)
@@ -593,3 +510,93 @@ class GraphPercolation:
         if return_curve:
             return score, c, hz_min
         return score
+
+    def _generate_macroscopic_edges(self, ELP_local: np.ndarray) -> np.ndarray:
+        from scipy.spatial.distance import pdist, squareform
+        
+        # 1. Temporary Union-Find to discover the local zones
+        uf_temp = ConnectedComponentEntropy(self.N)
+        if len(ELP_local) > 0:
+            uf_temp.merge_all(ELP_local[:, :2].astype(int), calculate_entropy=False)
+            
+        # 2. Extract zones and compute their centroids
+        roots = uf_temp.get_roots()
+        unique_roots, root_inv, zone_sizes = np.unique(roots, return_inverse=True, return_counts=True)
+        
+        # Blazing fast O(N) centroid calculation
+        sum_x = np.bincount(root_inv, weights=self.XY[:, 0])
+        sum_y = np.bincount(root_inv, weights=self.XY[:, 1])
+        centroids = np.column_stack((sum_x / zone_sizes, sum_y / zone_sizes))
+        
+        zone_types = self.type_vec[unique_roots]
+        macroscopic_edges = []
+        
+        # 3. All-vs-All macroscopic connections within each cell type
+        for t in self.unq_types:
+            type_mask = (zone_types == t)
+            type_zone_idx = np.where(type_mask)[0] 
+            n_type_zones = len(type_zone_idx)
+            
+            if n_type_zones < 2:
+                continue # Only one zone for this type, nothing to connect
+                
+            # Global fraction of this cell type
+            f = zone_sizes[type_zone_idx].sum() / self.N
+            
+            t_centroids = centroids[type_zone_idx]
+            t_sizes = zone_sizes[type_zone_idx]
+            t_roots = unique_roots[type_zone_idx]
+            
+            # Physical distances between zones (super fast because Z << N)
+            dist_matrix = squareform(pdist(t_centroids))
+            
+            # Convert macroscopic distance back to information rank (k)
+            for i in range(n_type_zones):
+                for j in range(i + 1, n_type_zones):
+                    d_ab = dist_matrix[i, j]
+                    
+                    # k_rank is the number of same-type cells closer to 'i' than 'j' is
+                    closer_mask = dist_matrix[i, :] <= d_ab
+                    k_rank = np.sum(t_sizes[closer_mask]) - t_sizes[i] 
+                    k_rank = max(1, k_rank) # Ensure minimum rank of 1
+                    
+                    p_bond = 1.0 - np.exp(-k_rank * f)
+                    macroscopic_edges.append([t_roots[i], t_roots[j], p_bond])
+                    
+        if len(macroscopic_edges) > 0:
+            return np.array(macroscopic_edges, dtype=np.float64)
+        return np.empty((0, 3), dtype=np.float64)
+    
+    def _generate_monte_carlo_permuted_edges(self, max_m: int = 10) -> np.ndarray:
+        """
+        Analytically simulate the K -> infinity permuted edge list 
+        using the Negative Binomial distribution, bypassing spatial search.
+        """
+        edges = []
+        tvec = self.type_vec_perm
+        unique_types, type_counts = np.unique(tvec, return_counts=True)
+        
+        for t, n_t in zip(unique_types, type_counts):
+            if n_t < 2:
+                continue
+                
+            f = n_t / self.N
+            t_nodes = np.where(tvec == t)[0]
+            
+            # For each cell, simulate finding 'm' same-type neighbors
+            for m in range(1, max_m + 1):
+                # Negative Binomial models failures (other types) before m successes
+                failures = np.random.negative_binomial(m, f, size=n_t)
+                k_ranks = failures + m
+                
+                p_bonds = 1.0 - np.exp(-k_ranks * f)
+                
+                # Assign a random destination node of the same type
+                dst_nodes = np.random.choice(t_nodes, size=n_t)
+                
+                m_edges = np.column_stack((t_nodes, dst_nodes, p_bonds))
+                edges.append(m_edges)
+                
+        if len(edges) > 0:
+            return np.vstack(edges)
+        return np.empty((0, 3), dtype=np.float64)

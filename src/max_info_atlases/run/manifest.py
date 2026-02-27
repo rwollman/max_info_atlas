@@ -25,6 +25,7 @@ class MethodSpec:
     distances: List[str] = field(default_factory=list)
     n_resolutions: int = 50
     levels: List[str] = field(default_factory=list)  # Preexisting only
+    k_jaccard: int = 15  # PhenoGraph only
 
 
 class RunConfig:
@@ -352,10 +353,29 @@ class RunConfig:
                 distances=method_cfg.get('distances', []),
                 n_resolutions=method_cfg.get('n_resolutions', 50),
                 levels=method_cfg.get('levels', []),
+                k_jaccard=method_cfg.get('k_jaccard', 15),
             )
             methods.append(spec)
         
         return methods
+
+    @property
+    def phenograph_graph_specs(self) -> List[Tuple[str, str, int]]:
+        """
+        Unique (data_type, distance, k_jaccard) specs required for PhenoGraph graphs.
+        """
+        specs: List[Tuple[str, str, int]] = []
+        seen = set()
+        for method in self.methods:
+            if method.name != 'phenograph':
+                continue
+            for dt in method.data_types:
+                for dist in method.distances:
+                    key = (dt, dist, method.k_jaccard)
+                    if key not in seen:
+                        seen.add(key)
+                        specs.append(key)
+        return specs
     
     # --- HPC settings ---
     
@@ -470,9 +490,12 @@ class RunManifest:
             expected['features'].append(f"features_{dt}.npy")
         
         # --- Graphs ---
+        phenograph_pairs = {(dt, dist) for dt, dist, _ in config.phenograph_graph_specs}
         for dt in config.feature_data_types:
             for dist in config.graph_distances:
                 expected['graphs'].append(f"FEL_{dt}_{dist}.npy")
+                if (dt, dist) in phenograph_pairs:
+                    expected['graphs'].append(f"PG_{dt}_{dist}.npz")
         
         # --- Clustering + Percolation ---
         for method in config.methods:
