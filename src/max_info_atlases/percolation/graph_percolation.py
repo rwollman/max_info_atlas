@@ -181,6 +181,7 @@ class GraphPercolation:
         self.pbond_vec_len = len(self.pbond_vec)
         self.ent_real = None
         self.ent_perm = None
+        self.hz_min = None
         
         self.ELKfull = edge_list
 
@@ -389,7 +390,8 @@ class GraphPercolation:
                     raise ValueError("xy_name must be provided when using edge_list_manager")
                 self.ELKfull = edge_list_manager.get_edge_list(self.XY, self.maxK, xy_name)
             else:
-                raise ValueError("No edge list provided and no edge_list_manager to get one from")
+                # Auto-compute edge list (backward-compatible behavior)
+                self.ELKfull = EdgeListManager().compute_edge_list(self.XY, self.maxK)
         
         # Shorten bond_vec by one to deal with edge case of 0
         self.pbond_vec_org = self.pbond_vec
@@ -399,6 +401,8 @@ class GraphPercolation:
         self.bond_percolation(permute=False)
         # Then do the permuted entropy calculation
         self.bond_percolation(permute=True)
+        # Compute and store the lower bound curve
+        self.hz_min = self._hz_min_curve_from_perm_edges()
 
     def raw_score(self) -> float:
         """
@@ -435,6 +439,7 @@ class GraphPercolation:
             type_vec_perm=self.type_vec_perm,
             ent_real=self.ent_real,
             ent_perm=self.ent_perm,
+            hz_min=self.hz_min if self.hz_min is not None else np.array([]),
             pbond_vec=self.pbond_vec,
             maxK=self.maxK
         )
@@ -452,6 +457,8 @@ class GraphPercolation:
         self.type_vec_perm = dump['type_vec_perm']
         self.ent_real = dump['ent_real']
         self.ent_perm = dump['ent_perm']
+        hz_min_loaded = dump['hz_min'] if 'hz_min' in dump else np.array([])
+        self.hz_min = hz_min_loaded if hz_min_loaded.size > 0 else None
         self.pbond_vec = dump['pbond_vec']
         self.maxK = dump['maxK']
         self.unq_types = np.unique(self.type_vec)
@@ -557,7 +564,7 @@ class GraphPercolation:
         if self.ent_real is None or self.ent_perm is None:
             raise ValueError("Run percolation() first to compute ent_real and ent_perm.")
 
-        hz_min = self._hz_min_curve_from_perm_edges()
+        hz_min = self.hz_min if self.hz_min is not None else self._hz_min_curve_from_perm_edges()
 
         # Align lengths
         L = min(len(self.ent_real), len(self.ent_perm), len(hz_min), len(self.pbond_vec) - 1)
