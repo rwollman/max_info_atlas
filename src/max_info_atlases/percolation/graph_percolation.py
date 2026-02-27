@@ -181,7 +181,6 @@ class GraphPercolation:
         self.pbond_vec_len = len(self.pbond_vec)
         self.ent_real = None
         self.ent_perm = None
-        self.hz_min = None
         
         self.ELKfull = edge_list
 
@@ -275,10 +274,6 @@ class GraphPercolation:
         else:
             ELP = ELP_local
             
-        # Cache the REAL edges for the H_z_min denominator calculation
-        if not permute:
-            self.ELP_real = ELP
-                
         # Sort combined edges by probability
         if len(ELP) > 0:
             ELP = ELP[np.argsort(ELP[:, 2])]
@@ -332,8 +327,6 @@ class GraphPercolation:
         self.bond_percolation(permute=False)
         # Then do the permuted entropy calculation
         self.bond_percolation(permute=True)
-        # Compute and store the lower bound curve
-        self.hz_min = self._hz_min_curve_from_real_edges()
 
     def raw_score(self) -> float:
         """
@@ -370,7 +363,6 @@ class GraphPercolation:
             type_vec_perm=self.type_vec_perm,
             ent_real=self.ent_real,
             ent_perm=self.ent_perm,
-            hz_min=self.hz_min if self.hz_min is not None else np.array([]),
             pbond_vec=self.pbond_vec,
             maxK=self.maxK
         )
@@ -388,126 +380,21 @@ class GraphPercolation:
         self.type_vec_perm = dump['type_vec_perm']
         self.ent_real = dump['ent_real']
         self.ent_perm = dump['ent_perm']
-        hz_min_loaded = dump['hz_min'] if 'hz_min' in dump else np.array([])
-        self.hz_min = hz_min_loaded if hz_min_loaded.size > 0 else None
         self.pbond_vec = dump['pbond_vec']
         self.maxK = dump['maxK']
         self.unq_types = np.unique(self.type_vec)
         self.n_types = len(np.unique(self.type_vec))
         self.N = len(self.type_vec)
 
-    def _hz_min_curve_from_real_edges(self) -> np.ndarray:
+    def normalized_score(self) -> float:
         """
-        Compute H_min(P) using a graph-theory lower bound on component count,
-        based on ALL AVAILABLE same-type edges (local + macroscopic) under the REAL labeling.
-        """
-        # 1. Retrieve the combined $K \to \infty$ real edge list
-        if not hasattr(self, 'ELP_real') or self.ELP_real is None:
-            raise ValueError("Run bond_percolation(permute=False) first to generate real edges.")
-            
-        ELP = self.ELP_real
-        N = self.N
+        Normalized percolation score.
 
-        n_bins = len(self.pbond_vec) - 1
-        hz_min = np.zeros(n_bins, dtype=np.float64)
-
-        # 2. Use REAL type vector and counts
-        tvec = self.type_vec
-        unq, inv, counts = np.unique(tvec, return_inverse=True, return_counts=True)
-        T = len(unq)
-        n_t = counts.astype(np.int64)  
-        type_idx = inv
-
-        # Sort ELP by pbond ascending
-        if ELP.shape[0] > 0:
-            order = np.argsort(ELP[:, 2])
-            ELP = ELP[order]
-
-        E_t = np.zeros(T, dtype=np.int64)
-        j = 0
-        m = ELP.shape[0]
-
-        sing_term = 0.0
-        if N > 0:
-            p1 = 1.0 / N
-            sing_term = -p1 * np.log2(p1)
-
-        # 3. Sweep and count edges
-        for i in range(n_bins):
-            lo = self.pbond_vec[i]
-            hi = self.pbond_vec[i + 1]
-
-            while j < m and ELP[j, 2] <= hi:
-                if ELP[j, 2] > lo:
-                    src = int(ELP[j, 0])
-                    # Because macroscopic edges use root IDs, they correctly map back to the root's cell type
-                    t = type_idx[src] 
-                    E_t[t] += 1
-                j += 1
-
-            # Graph bound: K_t >= max(1, n_t - E_t)
-            K_t = n_t - E_t
-            K_t[K_t < 1] = 1
-
-            a = n_t - K_t + 1  
-            H = 0.0
-            
-            for tt in range(T):
-                pa = a[tt] / float(N)
-                if pa > 0:
-                    H += -pa * np.log2(pa)
-                if K_t[tt] > 1:
-                    H += (K_t[tt] - 1) * sing_term
-
-            hz_min[i] = H
-
-        return hz_min
-    def normalized_score(self, return_curve: bool = False):
-        """
-        Normalized 0–1 coherence score.
-
-        Uses:
-            numerator(P)   = H_perm(P) - H_real(P)
-            denominator(P) = H_perm(P) - H_min_perm(P)
-
-        where H_min_perm(P) is a graph-theory lower envelope computed from permuted
-        type counts and available same-type edges up to scale P.
-
-        Returns:
-            float score in [0,1] (clipped), and optionally the curve c(P).
+        Returns raw_score() divided by log2(N), where N is the number of points.
         """
         if self.ent_real is None or self.ent_perm is None:
             raise ValueError("Run percolation() first to compute ent_real and ent_perm.")
-
-        hz_min = self.hz_min if self.hz_min is not None else self._hz_min_curve_from_real_edges()
-
-        # Align lengths
-        L = min(len(self.ent_real), len(self.ent_perm), len(hz_min), len(self.pbond_vec) - 1)
-        H_real = self.ent_real[:L]
-        H_perm = self.ent_perm[:L]
-        H_min = hz_min[:L]
-
-        num = H_perm - H_real
-        den = H_perm - H_min
-
-        # Avoid divide-by-zero and negative denominators (can happen numerically)
-        c = np.zeros(L, dtype=np.float64)
-        ok = den > 0
-        c[ok] = num[ok] / den[ok]
-
-        # Clip for numerical noise
-        c = np.clip(c, 0.0, 1.0)
-
-        # Integrate/average over pbond axis (pbond_vec bins)
-        x = self.pbond_vec[:L]  # note: pbond_vec was shortened (no 0), consistent with ent arrays
-        # Score as mean value over P range
-        area = np.trapz(c, x=x)
-        span = float(x[-1] - x[0]) if L > 1 else 1.0
-        score = area / span if span > 0 else float(c.mean())
-
-        if return_curve:
-            return score, c, hz_min
-        return score
+        return self.raw_score() / np.log2(self.N)
 
     def _generate_macroscopic_edges(self, ELP_local: np.ndarray, permute: bool = False) -> np.ndarray:
         from scipy.spatial.distance import cdist
