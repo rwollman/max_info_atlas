@@ -211,9 +211,7 @@ def analyze_log_timings(config, step_name: str):
     log_dir = Path(config.logs_dir) / step_name
     
     # Get chunk_size from config
-    step_config = config._data['steps'].get(step_name, {})
-    resources = step_config.get('resources', {})
-    chunk_size = resources.get('chunk_size', 1)
+    chunk_size = config.hpc_resources(step_name).get('chunk_size', 1)
     
     print(f"=== {step_name.upper()} ===")
     print(f"Log directory: {log_dir}")
