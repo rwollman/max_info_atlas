@@ -1147,23 +1147,32 @@ def run_clustering(chunk_file):
     for job in jobs:
         parts = job.split('\t')
         
-        # Detect format: 5 fields = v2 (method included), 4 fields = v1 (Leiden default)
-        if len(parts) >= 5:
+        # Detect format:
+        #   v3 (6 fields): method  input  output  res_idx  sections  n_resolutions
+        #   v2 (5 fields): method  input  output  res_idx  sections       (n_resolutions defaults to 50)
+        #   v1 (4 fields): input   output res_idx sections               (method defaults to leiden, n_resolutions defaults to 50)
+        if len(parts) >= 6:
+            method, input_file, output_dir, res_idx, sections_file, n_resolutions = (
+                parts[0], parts[1], parts[2], int(parts[3]), parts[4], int(parts[5])
+            )
+        elif len(parts) >= 5:
             method, input_file, output_dir, res_idx, sections_file = (
                 parts[0], parts[1], parts[2], int(parts[3]), parts[4]
             )
+            n_resolutions = 50
         elif len(parts) >= 4:
             method = 'leiden'  # backward compatible default
             input_file, output_dir, res_idx, sections_file = (
                 parts[0], parts[1], int(parts[2]), parts[3]
             )
+            n_resolutions = 50
         else:
             click.echo(f"  Skipping malformed job: {job}", err=True)
             continue
         
         # Get resolution value for display
         from ..clustering.base import get_resolution_values, format_resolution_dirname
-        resolution_values = get_resolution_values()  # Uses default n_resolutions=50
+        resolution_values = get_resolution_values(n_resolutions)
         resolution = resolution_values[res_idx]
         res_dirname = format_resolution_dirname(resolution)
         
@@ -1176,6 +1185,7 @@ def run_clustering(chunk_file):
                 output_folder=output_dir,
                 resolution_idx=res_idx,
                 sections_path=sections_file,
+                n_resolutions=n_resolutions,
             )
         elif method == 'phenograph':
             run_phenograph_on_file(
@@ -1183,6 +1193,7 @@ def run_clustering(chunk_file):
                 output_folder=output_dir,
                 resolution_idx=res_idx,
                 sections_path=sections_file,
+                n_resolutions=n_resolutions,
             )
         else:
             click.echo(f"  Unknown clustering method: {method}", err=True)
@@ -1326,6 +1337,217 @@ def run_aggregation(chunk_file, reduce):
                 click.echo(f"  Skipping reduce: missing xy_dir or aggregated scores", err=True)
     
     click.echo(f"✓ Completed {len(jobs)} aggregation jobs")
+
+
+# ============================================================================
+# ARI Commands  (pairwise Adjusted Rand Index – outside the YAML pipeline)
+# ============================================================================
+
+@cli.group()
+def ari():
+    """Pairwise ARI analysis between clustering configurations."""
+    pass
+
+
+@ari.command('prepare')
+@click.option('--config', '-c', 'config_path', required=True, type=click.Path(exists=True),
+              help='ARI config YAML file.')
+def ari_prepare(config_path):
+    """Build n-choose-2 pair chunks from a configurations CSV.
+
+    Reads all paths and settings from the YAML config, then writes:
+
+    \b
+      {base_dir}/config_snapshot.csv
+      {base_dir}/{chunks_dir}/chunk_0001_of_NNNN.txt  ...
+
+    After this, submit the array job with:
+
+    \b
+      max-info jobs submit \\
+          --chunks-dir {base_dir}/{chunks_dir}/ \\
+          --base-dir   {base_dir}/ \\
+          --temp-dir   {base_dir}/{results_dir}/ \\
+          --logs-dir   {base_dir}/{logs_dir}/ \\
+          --worker-command "max-info run-ari --config <config> --chunk-file CHUNK_FILE"
+    """
+    import pandas as pd
+    from ..comparison.config import AriConfig
+    from ..comparison.ari import build_comparison_pairs, pairs_to_job_list, n_pairs, n_chunks
+    from ..uge.job_generator import create_chunk_files
+
+    cfg = AriConfig.from_yaml(config_path)
+    click.echo(f"ARI run: {cfg.run_name}")
+
+    if not cfg.configs_csv.exists():
+        click.echo(f"ERROR: configs_csv not found: {cfg.configs_csv}", err=True)
+        raise SystemExit(1)
+
+    click.echo(f"Loading configurations from: {cfg.configs_csv}")
+    df = pd.read_csv(cfg.configs_csv, low_memory=False)
+    click.echo(f"  {len(df)} rows loaded.")
+
+    if cfg.id_cols:
+        missing = [c for c in cfg.id_cols if c not in df.columns]
+        if missing:
+            click.echo(f"ERROR: id_cols not found in CSV: {missing}", err=True)
+            raise SystemExit(1)
+
+    # Save snapshot with a clean 0-based index so workers can use loc[idx]
+    df = df.reset_index(drop=True)
+    cfg.base_dir.mkdir(parents=True, exist_ok=True)
+    df.to_csv(cfg.config_snapshot_path, index=True, index_label='_row_idx')
+    click.echo(f"Saved config snapshot → {cfg.config_snapshot_path}")
+
+    click.echo("Building all n-choose-2 pairs…")
+    pairs_df = build_comparison_pairs(df, id_cols=cfg.id_cols)
+    click.echo(f"  {len(pairs_df)} pairs ({n_pairs(len(df))} expected).")
+
+    job_lines = pairs_to_job_list(pairs_df)
+    chunk_files, _ = create_chunk_files(job_lines, cfg.chunks_dir, chunk_size=cfg.chunk_size)
+
+    total_chunks = n_chunks(len(df), cfg.chunk_size)
+    click.echo(
+        f"\nDone.  {len(chunk_files)} chunk file(s) → {cfg.chunks_dir}\n"
+        f"(#$ -t 1-{total_chunks} for a UGE array job)\n"
+        f"\nNext step:\n"
+        f"  max-info ari submit --config {config_path}"
+    )
+
+
+@ari.command('submit')
+@click.option('--config', '-c', 'config_path', required=True, type=click.Path(exists=True),
+              help='ARI config YAML file.')
+@click.option('--dry-run', is_flag=True, help='Print the submission script without submitting.')
+@click.option('--hold-jid', default=None, help='UGE job ID to wait for before starting.')
+def ari_submit(config_path, dry_run, hold_jid):
+    """Submit the ARI array job to UGE (run after 'max-info ari prepare')."""
+    from ..comparison.config import AriConfig
+    from ..uge.submit import submit_array_job, check_qsub_available
+
+    cfg = AriConfig.from_yaml(config_path)
+
+    if not dry_run and not check_qsub_available():
+        click.echo("ERROR: qsub not available on this system.", err=True)
+        raise SystemExit(1)
+
+    if not cfg.chunks_dir.exists():
+        click.echo(f"ERROR: Chunks directory not found: {cfg.chunks_dir}", err=True)
+        click.echo("Run 'max-info ari prepare' first.", err=True)
+        raise SystemExit(1)
+
+    worker_cmd = (
+        f'max-info run-ari --config {config_path} --chunk-file "$chunk_file"'
+    )
+
+    job_id, script = submit_array_job(
+        chunks_dir=cfg.chunks_dir,
+        base_dir=cfg.base_dir,
+        temp_dir=cfg.results_dir,
+        logs_dir=cfg.logs_dir,
+        job_name=cfg.run_name,
+        memory=cfg.memory,
+        runtime=cfg.runtime,
+        worker_command=worker_cmd,
+        hold_jid=hold_jid,
+        dry_run=dry_run,
+    )
+
+    if job_id:
+        click.echo(f"\nJob submitted: {job_id}")
+        if hold_jid:
+            click.echo(f"Depends on: {hold_jid}")
+        click.echo(f"\nWhen complete, combine results with:")
+        click.echo(f"  max-info ari combine --config {config_path}")
+
+
+@ari.command('combine')
+@click.option('--config', '-c', 'config_path', required=True, type=click.Path(exists=True),
+              help='ARI config YAML file.')
+@click.option('--output-filename', default='ari_combined.csv',
+              help='Name for the combined output file (default: ari_combined.csv).')
+def ari_combine(config_path, output_filename):
+    """Combine all ari_result_*.csv chunk outputs into a single file.
+
+    Each chunk already contains one row per pair (global ARI across all
+    sections), so combining is a pure concatenation — no further aggregation.
+    """
+    from ..comparison.config import AriConfig
+    from ..comparison.ari import combine_ari_chunks
+
+    cfg = AriConfig.from_yaml(config_path)
+
+    combined = combine_ari_chunks(
+        output_dir=cfg.results_dir,
+        combined_filename=output_filename,
+    )
+    click.echo(f"Combined DataFrame shape: {combined.shape}")
+
+
+@cli.command('run-ari')
+@click.option('--config', '-c', 'config_path', required=True, type=click.Path(exists=True),
+              help='ARI config YAML file.')
+@click.option('--chunk-file', '-f', required=True, type=click.Path(exists=True),
+              help='Chunk file (idx_1<TAB>idx_2 lines) produced by "max-info ari prepare".')
+def run_ari(config_path, chunk_file):
+    """Worker: compute ARI for one pair chunk (called by UGE array jobs)."""
+    import pandas as pd
+    import glob as _glob
+    from ..comparison.config import AriConfig
+    from ..comparison.ari import compute_ari_for_chunk
+
+    cfg = AriConfig.from_yaml(config_path)
+
+    # Load config snapshot
+    if not cfg.config_snapshot_path.exists():
+        click.echo(f"ERROR: config snapshot not found: {cfg.config_snapshot_path}", err=True)
+        click.echo("Run 'max-info ari prepare' first.", err=True)
+        raise SystemExit(1)
+    config_df = pd.read_csv(cfg.config_snapshot_path, index_col='_row_idx', low_memory=False)
+
+    # Resolve sections
+    sections_path = cfg.sections
+    if sections_path.is_file():
+        with open(sections_path) as fh:
+            section_list = [line.strip() for line in fh if line.strip()]
+    elif sections_path.is_dir():
+        xy_files = sorted(_glob.glob(str(sections_path / '*_XY.npy')))
+        if not xy_files:
+            click.echo(f"ERROR: No *_XY.npy files found in {sections_path}", err=True)
+            raise SystemExit(1)
+        section_list = [Path(f).stem.replace('_XY', '') for f in xy_files]
+    else:
+        click.echo(f"ERROR: input.sections must be a file or directory: {sections_path}", err=True)
+        raise SystemExit(1)
+
+    click.echo(f"Processing chunk: {chunk_file}  ({len(section_list)} sections)")
+
+    cfg.results_dir.mkdir(parents=True, exist_ok=True)
+
+    # Name output after chunk  (chunk_0042_of_0100 → ari_result_0042_of_0100)
+    chunk_stem = Path(chunk_file).stem
+    result_stem = chunk_stem.replace('chunk_', 'ari_result_', 1)
+    output_csv = cfg.results_dir / f'{result_stem}.csv'
+
+    result = compute_ari_for_chunk(
+        chunk_file=chunk_file,
+        config_df=config_df,
+        clustering_dir=cfg.clustering_dir,
+        sections=section_list,
+        output_csv=output_csv,
+        min_labels=cfg.min_labels,
+    )
+
+    if result.empty:
+        click.echo('WARNING: No ARI results computed for this chunk.')
+        result.to_csv(output_csv, index=False)
+    else:
+        n_sections = result['section'].nunique() if 'section' in result.columns else 0
+        n_pairs = result[['idx_1', 'idx_2']].drop_duplicates().shape[0]
+        click.echo(
+            f"Saved {len(result)} rows "
+            f"({n_pairs} pairs × {n_sections} sections) → {output_csv}"
+        )
 
 
 if __name__ == '__main__':

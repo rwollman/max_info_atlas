@@ -92,6 +92,7 @@ def run_leiden_on_file(
     output_folder: Union[str, Path],
     resolution_idx: int,
     sections_path: Optional[Union[str, Path]] = None,
+    n_resolutions: int = 50,
 ) -> None:
     """
     Run Leiden clustering on an FEL.npy file and save results by section.
@@ -101,14 +102,15 @@ def run_leiden_on_file(
     Args:
         input_npy: Path to FEL.npy edge list file
         output_folder: Base output folder
-        resolution_idx: Resolution index (0-49)
+        resolution_idx: Resolution index into the log-spaced resolution grid
         sections_path: Path to Sections.npy file (for splitting output)
+        n_resolutions: Total number of resolutions in the grid (determines spacing)
     """
     # Load edge list
     edge_list = np.load(input_npy)
     
     # Create clustering instance
-    clustering = LeidenClustering(resolution_idx=resolution_idx)
+    clustering = LeidenClustering(resolution_idx=resolution_idx, n_resolutions=n_resolutions)
     
     # Fit
     cluster_assignments = clustering.fit(edge_list)
