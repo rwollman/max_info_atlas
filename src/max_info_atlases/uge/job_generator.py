@@ -317,6 +317,13 @@ def create_chunk_files(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     
+    # Remove any stale chunk files from a previous run with a different total.
+    # Without this, old chunk_XXXX_of_YYYY.txt files accumulate and cause the
+    # array job to be submitted with more tasks than chunk files actually exist,
+    # leading to high-numbered tasks that exit immediately (HPC policy violation).
+    for stale in output_dir.glob("chunk_*_of_*.txt"):
+        stale.unlink()
+    
     total_jobs = len(job_list)
     
     # If chunk_size >= total, make it a single chunk
