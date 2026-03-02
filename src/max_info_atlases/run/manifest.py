@@ -239,7 +239,8 @@ class RunConfig:
         from ..features.derived import parse_derived_config, build_derived_feature_name
         
         # Get all feature types for source resolution
-        all_types = self._data['steps'].get('features', {}).get('data_types', [])
+        # Copy the list to avoid mutating the shared YAML data structure
+        all_types = list(self._data['steps'].get('features', {}).get('data_types', []))
         
         # Add local frequency features
         lf_config = self.local_frequency_config

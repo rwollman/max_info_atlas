@@ -324,7 +324,7 @@ class RunOrchestrator:
                                 continue
 
                         jobs.append(
-                            f"{method.name}\t{graph_file}\t{output_dir}\t{res_idx}\t{config.sections_file}"
+                            f"{method.name}\t{graph_file}\t{output_dir}\t{res_idx}\t{config.sections_file}\t{method.n_resolutions}"
                         )
         
         if skipped > 0:
