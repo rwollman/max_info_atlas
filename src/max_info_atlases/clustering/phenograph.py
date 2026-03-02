@@ -250,6 +250,7 @@ def run_phenograph_on_file(
     resolution_idx: int,
     sections_path: Optional[Union[str, Path]] = None,
     k_jaccard: int = 15,
+    n_resolutions: int = 50,
 ) -> None:
     """
     Run PhenoGraph clustering on a precomputed weighted graph file and save results by section.
@@ -257,9 +258,10 @@ def run_phenograph_on_file(
     Args:
         input_npy: Path to precomputed PhenoGraph weighted graph .npz file
         output_folder: Base output folder
-        resolution_idx: Resolution index (0-49)
+        resolution_idx: Resolution index into the log-spaced resolution grid
         sections_path: Path to Sections.npy file (for splitting output)
         k_jaccard: Top-k Jaccard neighbors per cell
+        n_resolutions: Total number of resolutions in the grid (determines spacing)
     """
     input_npy = Path(input_npy)
     output_folder = Path(output_folder)
@@ -281,6 +283,7 @@ def run_phenograph_on_file(
     clustering = PhenoGraphClustering(
         resolution_idx=resolution_idx,
         k_jaccard=k_jaccard,
+        n_resolutions=n_resolutions,
     )
     cluster_assignments = clustering.fit_weighted_graph(weighted_edges, weights, n_nodes)
     
