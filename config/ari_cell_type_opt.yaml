@@ -1,0 +1,79 @@
+# =============================================================================
+# ARI Analysis Configuration: Cell Type Optimization
+# =============================================================================
+#
+# Computes pairwise Adjusted Rand Index between all clustering configurations
+# produced by a max-info pipeline run.
+#
+# This is SEPARATE from the main pipeline YAML (run_cell_type_opt.yaml).
+# It uses the same UGE chunking/submission machinery but does not touch
+# RunConfig, RunOrchestrator, or any pipeline step.
+#
+# Usage:
+#   max-info ari prepare --config config/ari_cell_type_opt.yaml
+#   max-info ari submit  --config config/ari_cell_type_opt.yaml
+#   max-info ari combine --config config/ari_cell_type_opt.yaml
+#
+# =============================================================================
+
+run_name: "ari_cell_type_opt"
+description: "Pairwise ARI between all cell-type clustering configurations"
+
+# =============================================================================
+# Input
+# =============================================================================
+input:
+  # CSV with one row per clustering configuration to compare.
+  # Typically the reduced scores file from the pipeline (one row per algorithm).
+  configs_csv: /u/home/r/rwollman/project-rwollman/max_info_cart_v2/data/cell_type_opt/cell_type_percolation_scores_reduced.csv
+
+  # Root directory containing clustering label .npy files.
+  # Structure: {clustering_dir}/{algorithm}/{res_subdir}/{section}.npy
+  clustering_dir: /u/home/r/rwollman/project-rwollman/max_info_cart_v2/data/cell_type_opt/clustering
+
+  # Section discovery: path to a directory containing {section}_XY.npy files
+  # OR a plain text file with one section name per line.
+  sections: /u/home/r/rwollman/project-rwollman/max_info_cart_v2/data/input_data/xy_coordinates
+
+# =============================================================================
+# Output
+# =============================================================================
+output:
+  # Root directory for all ARI outputs
+  base_dir: /u/home/r/rwollman/project-rwollman/max_info_cart_v2/data/cell_type_opt/ari_results
+
+  # Subdirectories (relative to base_dir)
+  chunks_dir:  chunks    # chunk_NNNN_of_MMMM.txt files
+  results_dir: results   # ari_result_*.csv files from workers
+  logs_dir:    logs      # UGE log files
+
+# =============================================================================
+# Analysis Settings
+# =============================================================================
+analysis:
+  # Columns from configs_csv to embed in pair metadata.
+  # null  → include all columns (large but complete)
+  # list  → include only these columns (leaner output)
+  id_cols:
+    - algorithm
+    - method
+    - data_type
+    - distance
+    - resolution
+
+  # Skip pairs where either concatenated label vector has fewer than this many
+  # unique labels.  Set to 2 to exclude degenerate single-cluster solutions.
+  min_labels: 1
+
+# =============================================================================
+# HPC / UGE Settings
+# =============================================================================
+hpc:
+  conda_env: max_info_atlases
+
+  # Pairs per array-job task.  Each pair loads label arrays for all sections,
+  # concatenates them, and calls adjusted_rand_score once.  With 1204
+  # configurations (>720K pairs) and chunk_size=500, this gives ~1441 tasks.
+  chunk_size: 1000
+  memory:  "8G"
+  runtime: "1:00:00"
