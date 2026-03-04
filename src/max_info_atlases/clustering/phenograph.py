@@ -158,6 +158,8 @@ class PhenoGraphClustering(ClusteringMethod):
         resolution: Optional[float] = None,
         resolution_idx: Optional[int] = None,
         n_resolutions: int = 50,
+        log_min: float = -1.0,
+        log_max: float = 2.5,
         objective: str = 'modularity',
         k_jaccard: int = 15,
     ):
@@ -166,8 +168,10 @@ class PhenoGraphClustering(ClusteringMethod):
 
         Args:
             resolution: Resolution parameter (higher = more clusters)
-            resolution_idx: Index into standard resolution array (0-49)
+            resolution_idx: Index into standard resolution array
             n_resolutions: Number of resolution values in standard array
+            log_min: log10 of minimum resolution (default -1.0 → 0.1)
+            log_max: log10 of maximum resolution (default 2.5 → ~316)
             objective: Objective function ('modularity' or 'CPM')
             k_jaccard: Top-k Jaccard neighbors per cell
         """
@@ -180,11 +184,11 @@ class PhenoGraphClustering(ClusteringMethod):
             self.resolution = resolution
             self.resolution_idx = None
         elif resolution_idx is not None:
-            resolutions = get_resolution_values(n_resolutions)
+            resolutions = get_resolution_values(n_resolutions, log_min=log_min, log_max=log_max)
             self.resolution = resolutions[resolution_idx]
             self.resolution_idx = resolution_idx
         else:
-            resolutions = get_resolution_values(n_resolutions)
+            resolutions = get_resolution_values(n_resolutions, log_min=log_min, log_max=log_max)
             self.resolution_idx = n_resolutions // 2
             self.resolution = resolutions[self.resolution_idx]
 
@@ -251,6 +255,8 @@ def run_phenograph_on_file(
     sections_path: Optional[Union[str, Path]] = None,
     k_jaccard: int = 15,
     n_resolutions: int = 50,
+    log_min: float = -1.0,
+    log_max: float = 2.5,
 ) -> None:
     """
     Run PhenoGraph clustering on a precomputed weighted graph file and save results by section.
@@ -262,6 +268,8 @@ def run_phenograph_on_file(
         sections_path: Path to Sections.npy file (for splitting output)
         k_jaccard: Top-k Jaccard neighbors per cell
         n_resolutions: Total number of resolutions in the grid (determines spacing)
+        log_min: log10 of minimum resolution (default -1.0 → 0.1)
+        log_max: log10 of maximum resolution (default 2.5 → ~316)
     """
     input_npy = Path(input_npy)
     output_folder = Path(output_folder)
@@ -284,6 +292,8 @@ def run_phenograph_on_file(
         resolution_idx=resolution_idx,
         k_jaccard=k_jaccard,
         n_resolutions=n_resolutions,
+        log_min=log_min,
+        log_max=log_max,
     )
     cluster_assignments = clustering.fit_weighted_graph(weighted_edges, weights, n_nodes)
     

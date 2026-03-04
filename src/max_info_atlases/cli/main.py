@@ -1148,31 +1148,38 @@ def run_clustering(chunk_file):
         parts = job.split('\t')
         
         # Detect format:
+        #   v4 (8 fields): method  input  output  res_idx  sections  n_resolutions  log_min  log_max
         #   v3 (6 fields): method  input  output  res_idx  sections  n_resolutions
-        #   v2 (5 fields): method  input  output  res_idx  sections       (n_resolutions defaults to 50)
-        #   v1 (4 fields): input   output res_idx sections               (method defaults to leiden, n_resolutions defaults to 50)
-        if len(parts) >= 6:
+        #   v2 (5 fields): method  input  output  res_idx  sections
+        #   v1 (4 fields): input   output res_idx sections
+        if len(parts) >= 8:
+            method, input_file, output_dir, res_idx, sections_file, n_resolutions, log_min, log_max = (
+                parts[0], parts[1], parts[2], int(parts[3]), parts[4],
+                int(parts[5]), float(parts[6]), float(parts[7])
+            )
+        elif len(parts) >= 6:
             method, input_file, output_dir, res_idx, sections_file, n_resolutions = (
                 parts[0], parts[1], parts[2], int(parts[3]), parts[4], int(parts[5])
             )
+            log_min, log_max = -1.0, 2.5
         elif len(parts) >= 5:
             method, input_file, output_dir, res_idx, sections_file = (
                 parts[0], parts[1], parts[2], int(parts[3]), parts[4]
             )
-            n_resolutions = 50
+            n_resolutions, log_min, log_max = 50, -1.0, 2.5
         elif len(parts) >= 4:
             method = 'leiden'  # backward compatible default
             input_file, output_dir, res_idx, sections_file = (
                 parts[0], parts[1], int(parts[2]), parts[3]
             )
-            n_resolutions = 50
+            n_resolutions, log_min, log_max = 50, -1.0, 2.5
         else:
             click.echo(f"  Skipping malformed job: {job}", err=True)
             continue
         
         # Get resolution value for display
         from ..clustering.base import get_resolution_values, format_resolution_dirname
-        resolution_values = get_resolution_values(n_resolutions)
+        resolution_values = get_resolution_values(n_resolutions, log_min=log_min, log_max=log_max)
         resolution = resolution_values[res_idx]
         res_dirname = format_resolution_dirname(resolution)
         
@@ -1186,6 +1193,8 @@ def run_clustering(chunk_file):
                 resolution_idx=res_idx,
                 sections_path=sections_file,
                 n_resolutions=n_resolutions,
+                log_min=log_min,
+                log_max=log_max,
             )
         elif method == 'phenograph':
             run_phenograph_on_file(
@@ -1194,6 +1203,8 @@ def run_clustering(chunk_file):
                 resolution_idx=res_idx,
                 sections_path=sections_file,
                 n_resolutions=n_resolutions,
+                log_min=log_min,
+                log_max=log_max,
             )
         else:
             click.echo(f"  Unknown clustering method: {method}", err=True)

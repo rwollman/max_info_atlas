@@ -23,6 +23,8 @@ class LeidenClustering(ClusteringMethod):
         resolution: Optional[float] = None,
         resolution_idx: Optional[int] = None,
         n_resolutions: int = 50,
+        log_min: float = -1.0,
+        log_max: float = 2.5,
         objective: str = 'modularity',
     ):
         """
@@ -30,8 +32,10 @@ class LeidenClustering(ClusteringMethod):
         
         Args:
             resolution: Resolution parameter (higher = more clusters)
-            resolution_idx: Index into standard resolution array (0-49)
+            resolution_idx: Index into standard resolution array
             n_resolutions: Number of resolution values in standard array
+            log_min: log10 of minimum resolution (default -1.0 → 0.1)
+            log_max: log10 of maximum resolution (default 2.5 → ~316)
             objective: Objective function ('modularity' or 'CPM')
         """
         self.n_resolutions = n_resolutions
@@ -42,12 +46,12 @@ class LeidenClustering(ClusteringMethod):
             self.resolution = resolution
             self.resolution_idx = None
         elif resolution_idx is not None:
-            resolutions = get_resolution_values(n_resolutions)
+            resolutions = get_resolution_values(n_resolutions, log_min=log_min, log_max=log_max)
             self.resolution = resolutions[resolution_idx]
             self.resolution_idx = resolution_idx
         else:
             # Default to middle resolution
-            resolutions = get_resolution_values(n_resolutions)
+            resolutions = get_resolution_values(n_resolutions, log_min=log_min, log_max=log_max)
             self.resolution_idx = n_resolutions // 2
             self.resolution = resolutions[self.resolution_idx]
     
@@ -93,6 +97,8 @@ def run_leiden_on_file(
     resolution_idx: int,
     sections_path: Optional[Union[str, Path]] = None,
     n_resolutions: int = 50,
+    log_min: float = -1.0,
+    log_max: float = 2.5,
 ) -> None:
     """
     Run Leiden clustering on an FEL.npy file and save results by section.
@@ -105,12 +111,19 @@ def run_leiden_on_file(
         resolution_idx: Resolution index into the log-spaced resolution grid
         sections_path: Path to Sections.npy file (for splitting output)
         n_resolutions: Total number of resolutions in the grid (determines spacing)
+        log_min: log10 of minimum resolution (default -1.0 → 0.1)
+        log_max: log10 of maximum resolution (default 2.5 → ~316)
     """
     # Load edge list
     edge_list = np.load(input_npy)
     
     # Create clustering instance
-    clustering = LeidenClustering(resolution_idx=resolution_idx, n_resolutions=n_resolutions)
+    clustering = LeidenClustering(
+        resolution_idx=resolution_idx,
+        n_resolutions=n_resolutions,
+        log_min=log_min,
+        log_max=log_max,
+    )
     
     # Fit
     cluster_assignments = clustering.fit(edge_list)

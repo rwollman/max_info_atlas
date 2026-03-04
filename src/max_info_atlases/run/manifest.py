@@ -24,6 +24,8 @@ class MethodSpec:
     data_types: List[str] = field(default_factory=list)
     distances: List[str] = field(default_factory=list)
     n_resolutions: int = 50
+    resolution_log_min: float = -1.0   # log10 of minimum resolution
+    resolution_log_max: float = 2.5    # log10 of maximum resolution
     levels: List[str] = field(default_factory=list)  # Preexisting only
     k_jaccard: int = 15  # PhenoGraph only
 
@@ -353,6 +355,8 @@ class RunConfig:
                 data_types=resolved_data_types,
                 distances=method_cfg.get('distances', []),
                 n_resolutions=method_cfg.get('n_resolutions', 50),
+                resolution_log_min=method_cfg.get('resolution_log_min', -1.0),
+                resolution_log_max=method_cfg.get('resolution_log_max', 2.5),
                 levels=method_cfg.get('levels', []),
                 k_jaccard=method_cfg.get('k_jaccard', 15),
             )
@@ -507,7 +511,11 @@ class RunManifest:
                         
                         # Import here to avoid circular dependency
                         from ..clustering.base import get_resolution_values, format_resolution_dirname
-                        resolution_values = get_resolution_values(method.n_resolutions)
+                        resolution_values = get_resolution_values(
+                            method.n_resolutions,
+                            log_min=method.resolution_log_min,
+                            log_max=method.resolution_log_max,
+                        )
                         
                         for res_idx in range(method.n_resolutions):
                             resolution = resolution_values[res_idx]

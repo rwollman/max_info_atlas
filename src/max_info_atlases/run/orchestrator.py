@@ -300,7 +300,11 @@ class RunOrchestrator:
                     output_dir = config.clustering_dir / folder
 
                     # Get actual resolution values for this method
-                    resolution_values = get_resolution_values(method.n_resolutions)
+                    resolution_values = get_resolution_values(
+                        method.n_resolutions,
+                        log_min=method.resolution_log_min,
+                        log_max=method.resolution_log_max,
+                    )
 
                     for res_idx in range(method.n_resolutions):
                         resolution = resolution_values[res_idx]
@@ -324,7 +328,8 @@ class RunOrchestrator:
                                 continue
 
                         jobs.append(
-                            f"{method.name}\t{graph_file}\t{output_dir}\t{res_idx}\t{config.sections_file}\t{method.n_resolutions}"
+                            f"{method.name}\t{graph_file}\t{output_dir}\t{res_idx}\t{config.sections_file}"
+                            f"\t{method.n_resolutions}\t{method.resolution_log_min}\t{method.resolution_log_max}"
                         )
         
         if skipped > 0:
@@ -352,7 +357,11 @@ class RunOrchestrator:
                         folder = build_folder_name(method_str, dt, dist)
                         
                         # Get actual resolution values for this method
-                        resolution_values = get_resolution_values(method.n_resolutions)
+                        resolution_values = get_resolution_values(
+                            method.n_resolutions,
+                            log_min=method.resolution_log_min,
+                            log_max=method.resolution_log_max,
+                        )
                         
                         for res_idx in range(method.n_resolutions):
                             resolution = resolution_values[res_idx]
