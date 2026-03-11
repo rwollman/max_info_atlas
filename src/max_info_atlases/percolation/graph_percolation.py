@@ -181,8 +181,28 @@ class GraphPercolation:
         self.pbond_vec_len = len(self.pbond_vec)
         self.ent_real = None
         self.ent_perm = None
+        self._ent_type_real = None
+        self._ent_type_perm = None
         
         self.ELKfull = edge_list
+
+    @staticmethod
+    def _list_entropy(labels: np.ndarray) -> float:
+        if len(labels) == 0:
+            return np.nan
+        _, counts = np.unique(labels, return_counts=True)
+        freq = counts / counts.sum()
+        return -np.sum(freq * np.log2(freq))
+
+    @property
+    def ent_type_real(self) -> np.ndarray:
+        self.ensure_type_entropies()
+        return self._ent_type_real
+
+    @property
+    def ent_type_perm(self) -> np.ndarray:
+        self.ensure_type_entropies()
+        return self._ent_type_perm
 
     def calc_ELKexp(self, permute: bool = False) -> np.ndarray:
         """
@@ -300,14 +320,68 @@ class GraphPercolation:
             
         return ent
 
+    def _type_entropy_curves_from_edges(self, permute: bool = False) -> np.ndarray:
+        uf = ConnectedComponentEntropy(self.N)
+        ent_type = np.full((len(self.pbond_vec) - 1, self.n_types), np.nan)
+
+        ELP_local = self.calc_ELKexp(permute=permute)
+        ELP_macro = self._generate_macroscopic_edges(ELP_local, permute=permute)
+
+        if len(ELP_macro) > 0:
+            ELP = np.vstack([ELP_local, ELP_macro])
+        else:
+            ELP = ELP_local
+
+        if len(ELP) > 0:
+            ELP = ELP[np.argsort(ELP[:, 2])]
+
+        tvec = self.type_vec_perm if permute else self.type_vec
+
+        for i in range(len(self.pbond_vec) - 1):
+            ix_to_merge = np.logical_and(
+                ELP[:, 2] > self.pbond_vec[i],
+                ELP[:, 2] <= self.pbond_vec[i + 1]
+            )
+            if ix_to_merge.any():
+                uf.merge_all(ELP[ix_to_merge, :2].astype(int))
+
+            roots = uf.get_roots()
+            for t, typ in enumerate(self.unq_types):
+                ent_type[i, t] = self._list_entropy(roots[tvec == typ])
+
+        return ent_type
+
+    def compute_type_entropies(self) -> None:
+        """
+        Compute per-type entropy curves for real and permuted type assignments.
+
+        This is optional because it requires an extra per-threshold union-find sweep
+        and can add substantial storage if persisted.
+        """
+        if self.ELKfull is None:
+            self.ELKfull = EdgeListManager().compute_edge_list(self.XY, self.maxK)
+
+        if self.ent_real is None or self.ent_perm is None:
+            self.percolation(compute_type_entropy=False)
+
+        self._ent_type_real = self._type_entropy_curves_from_edges(permute=False)
+        self._ent_type_perm = self._type_entropy_curves_from_edges(permute=True)
+
+    def ensure_type_entropies(self) -> None:
+        """Lazily materialize per-type entropy curves when they are requested."""
+        if self._ent_type_real is None or self._ent_type_perm is None:
+            self.compute_type_entropies()
+
     def percolation(self, edge_list_manager: EdgeListManager = None, 
-                    xy_name: str = None) -> None:
+                    xy_name: str = None,
+                    compute_type_entropy: bool = False) -> None:
         """
         Perform percolation analysis for both real and permuted type distributions.
         
         Args:
             edge_list_manager: Manager to get edge list from if not already available
             xy_name: Identifier for the XY dataset, required if edge_list_manager is provided
+            compute_type_entropy: Whether to also compute per-type entropy curves
         """
         # Only get ELKfull if it hasn't been provided
         if self.ELKfull is None:
@@ -327,6 +401,12 @@ class GraphPercolation:
         self.bond_percolation(permute=False)
         # Then do the permuted entropy calculation
         self.bond_percolation(permute=True)
+
+        # Per-type curves are optional and expensive to persist.
+        self._ent_type_real = None
+        self._ent_type_perm = None
+        if compute_type_entropy:
+            self.compute_type_entropies()
 
     def raw_score(self) -> float:
         """
@@ -356,8 +436,7 @@ class GraphPercolation:
         Args:
             filename: Path to output .npz file
         """
-        np.savez(
-            filename,
+        payload = dict(
             XY=self.XY,
             type_vec=self.type_vec,
             type_vec_perm=self.type_vec_perm,
@@ -366,13 +445,20 @@ class GraphPercolation:
             pbond_vec=self.pbond_vec,
             maxK=self.maxK
         )
+        if self._ent_type_real is not None:
+            payload["ent_type_real"] = self._ent_type_real
+        if self._ent_type_perm is not None:
+            payload["ent_type_perm"] = self._ent_type_perm
+
+        np.savez(filename, **payload)
         
-    def load(self, filename: str) -> None:
+    def load(self, filename: str, compute_type_entropy: bool = False) -> None:
         """
         Load percolation results from file.
         
         Args:
             filename: Path to input .npz file
+            compute_type_entropy: Whether to compute missing per-type entropy curves
         """
         dump = np.load(filename)
         self.XY = dump['XY']
@@ -382,9 +468,17 @@ class GraphPercolation:
         self.ent_perm = dump['ent_perm']
         self.pbond_vec = dump['pbond_vec']
         self.maxK = dump['maxK']
+        self._ent_type_real = dump['ent_type_real'] if 'ent_type_real' in dump.files else None
+        self._ent_type_perm = dump['ent_type_perm'] if 'ent_type_perm' in dump.files else None
         self.unq_types = np.unique(self.type_vec)
         self.n_types = len(np.unique(self.type_vec))
         self.N = len(self.type_vec)
+        self.ELKfull = None
+
+        if compute_type_entropy and (
+            self._ent_type_real is None or self._ent_type_perm is None
+        ):
+            self.compute_type_entropies()
 
     def normalized_score(self) -> float:
         """
